@@ -1,0 +1,25 @@
+package br.edu.ifrs.account.config;
+
+import org.eclipse.microprofile.openapi.annotations.OpenAPIDefinition;
+import org.eclipse.microprofile.openapi.annotations.info.Info;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
+import org.eclipse.microprofile.openapi.annotations.enums.SecuritySchemeType;
+import jakarta.ws.rs.ApplicationPath;
+import jakarta.ws.rs.core.Application;
+
+@OpenAPIDefinition(
+        info = @Info(
+                title = "Account Service API",
+                version = "1.0.0",
+                description = "API para autenticação e gerenciamento de contas bancárias"
+        )
+)
+@SecurityScheme(
+        securitySchemeName = "bearerAuth",
+        type = SecuritySchemeType.HTTP,
+        scheme = "bearer",
+        bearerFormat = "JWT"
+)
+@ApplicationPath("/")
+public class OpenApiConfig extends Application {
+}
