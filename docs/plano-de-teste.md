@@ -109,10 +109,10 @@ Os testes usarão H2 em memória e dados controlados em `src/test/resources/impo
 ### 4.3 Testes de sistema planejados
 
 - Login de cliente, consulta da conta e depósito bem-sucedido — primeiro lote concluído em `AccountSystemIT`, com restauração do saldo pela API.
-- Saque e transferência com atualização dos saldos.
+- Saque e transferência com atualização e restauração dos saldos — concluídos em `AccountSystemIT`.
 - Bloqueio administrativo seguido de operação recusada.
 - Desbloqueio administrativo seguido de operação permitida.
-- Operação bancária seguida de consulta do registro pelo auditor.
+- Operação bancária seguida de consulta do registro pelo auditor — concluída para transferência em `AccountSystemIT`.
 - Login inválido retornando `401`.
 - Cliente tentando endpoint administrativo e recebendo `403`.
 
@@ -313,7 +313,7 @@ Resultados esperados:
 - [x] Mockito e JaCoCo integrados ao Maven.
 - [x] Testes unitários implementados e cobertura medida.
 - [x] Testes de componente implementados.
-- [ ] Testes de sistema implementados — em andamento: primeiro fluxo empacotado validado em `AccountSystemIT`.
+- [ ] Testes de sistema implementados — em andamento: três fluxos empacotados validados em `AccountSystemIT`; administração e segurança permanecem pendentes.
 - [ ] Apontamentos estáticos corrigidos ou justificados.
 - [ ] Evidências consolidadas em `docs/evidencias/`.
 - [ ] README atualizado com todos os comandos de reprodução.

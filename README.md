@@ -76,7 +76,7 @@ Os limites de cobertura (70% de linhas no total e 80% nos serviços e em `AuthSe
 .\mvnw.cmd clean verify "-DskipITs=false" "-Dcoverage.check.skip=false"
 ```
 
-Na execução validada em 20/11/2026 com JDK 25, passaram 160 testes unitários e de componente pelo Surefire e um teste de sistema pelo Failsafe, totalizando 161 execuções, sem falhas, erros ou testes ignorados. O PMD apresentou zero violações e os limites JaCoCo foram atendidos. A cobertura permaneceu em 354/359 linhas (98,6%) e 45/47 desvios (95,7%). Os testes de componente foram concluídos; os testes de sistema estão em andamento.
+Na execução validada em 20/11/2026 com JDK 25, passaram 160 testes unitários e de componente pelo Surefire e três testes de sistema pelo Failsafe, totalizando 163 execuções, sem falhas, erros ou testes ignorados. O PMD apresentou zero violações e os limites JaCoCo foram atendidos. A cobertura permaneceu em 354/359 linhas (98,6%) e 45/47 desvios (95,7%). Os testes de sistema já cobrem login, consulta, depósito, saque, transferência e consulta da auditoria; os cenários administrativos e de segurança ainda estão pendentes.
 
 Os testes unitários e de componente usam um par de chaves JWT próprio em `src/test/resources`. O teste de sistema executa o artefato empacotado no perfil de produção e valida, por HTTP, as chaves incluídas em `src/main/resources`.
 

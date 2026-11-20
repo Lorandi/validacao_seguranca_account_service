@@ -1,6 +1,6 @@
 # Evidência de Cobertura Automatizada
 
-Este documento registra a cobertura obtida em 20/11/2026 com as seis classes de testes unitários e os testes de componente `AuthResourceTest`, `AuthorizationTest`, `AccountCustomerResourceTest`, `AccountAdminResourceTest` e `AccountAuditResourceTest`. O primeiro teste de sistema já é executado pelo Failsafe, mas não faz parte destes números porque o processo externo da aplicação empacotada não está instrumentado pelo JaCoCo.
+Este documento registra a cobertura obtida em 20/11/2026 com as seis classes de testes unitários e os testes de componente `AuthResourceTest`, `AuthorizationTest`, `AccountCustomerResourceTest`, `AccountAdminResourceTest` e `AccountAuditResourceTest`. Três testes de sistema já são executados pelo Failsafe, mas não fazem parte destes números porque o processo externo da aplicação empacotada não está instrumentado pelo JaCoCo.
 
 ## 1. Geração do relatório
 
@@ -33,7 +33,7 @@ Evolução observada:
 | Correção HTTP 415 e testes de regressão | 335/359 | 93,3% |
 | Testes de componente administrativos | 351/359 | 97,8% |
 | Testes de componente de auditoria | 354/359 | 98,6% |
-| Primeiro teste de sistema, sem instrumentação do processo externo | 354/359 | 98,6% |
+| Três testes de sistema, sem instrumentação do processo externo | 354/359 | 98,6% |
 
 ## 3. Classes centrais
 
@@ -75,7 +75,7 @@ Os lotes de componente planejados foram concluídos. Todos os resources possuem 
 - `AccountAudit`: duas linhas;
 - `OpenApiConfig`: uma linha.
 
-Não foram criados testes artificiais apenas para aumentar percentuais. O primeiro teste de sistema valida o comportamento do artefato empacotado, mas não altera o relatório atual. Medir cobertura do processo externo exigiria configuração adicional de instrumentação e não foi incluído neste lote.
+Não foram criados testes artificiais apenas para aumentar percentuais. Os três testes de sistema validam o comportamento do artefato empacotado, mas não alteram o relatório atual. Medir cobertura do processo externo exigiria configuração adicional de instrumentação e não foi incluído neste lote.
 
 ## 6. Reprodutibilidade
 
