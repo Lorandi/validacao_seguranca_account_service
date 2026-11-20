@@ -1,23 +1,30 @@
-# Evidência de Cobertura dos Testes Unitários
+# Evidência de Cobertura Automatizada
 
-Este documento registra a cobertura obtida em 20/11/2026 exclusivamente com as seis classes de testes unitários revisadas. Testes de componente e de sistema ainda não fazem parte destes números.
+Este documento registra a cobertura obtida em 20/11/2026 com as seis classes de testes unitários e o primeiro teste de componente revisado, `AuthResourceTest`. Testes de sistema ainda não fazem parte destes números.
 
 ## 1. Geração do relatório
 
-Após a execução unitária limpa, o relatório foi produzido com:
+O build completo e a verificação dos limites foram executados com JDK 25:
 
 ```powershell
-.\mvnw.cmd "-Djacoco.dataFile=target/jacoco-quarkus.exec" jacoco:report
+.\mvnw.cmd clean verify "-Dcoverage.check.skip=false"
 ```
 
-O relatório navegável foi gerado em `target/site/jacoco/index.html`, e os dados consolidados foram lidos de `target/site/jacoco/jacoco.csv`.
+O relatório navegável foi gerado pela extensão `quarkus-jacoco` em `target/jacoco-report/index.html`, e os dados consolidados foram lidos de `target/jacoco-report/jacoco.csv`.
 
 ## 2. Cobertura total
 
 | Métrica | Coberto | Total | Percentual |
 | --- | ---: | ---: | ---: |
-| Linhas | 260 | 356 | **73,0%** |
+| Linhas | 272 | 356 | **76,4%** |
 | Desvios | 40 | 44 | **90,9%** |
+
+Evolução observada:
+
+| Etapa | Linhas cobertas | Percentual |
+| --- | ---: | ---: |
+| Testes unitários | 260/356 | 73,0% |
+| Unitários + `AuthResourceTest` | 272/356 | 76,4% |
 
 ## 3. Classes centrais
 
@@ -27,6 +34,9 @@ O relatório navegável foi gerado em `target/site/jacoco/index.html`, e os dado
 | `AccountAdminService` | 17/17 | 100% | não aplicável |
 | `AccountAuditService` | 28/28 | 100% | não aplicável |
 | `AuthService` | 19/19 | 100% | 4/4 |
+| `AuthResource` | 4/4 | 100% | não aplicável |
+| `UserRepository` | 2/2 | 100% | não aplicável |
+| `User` | 11/11 | 100% | não aplicável |
 | `ApiExceptionMapper` | 19/19 | 100% | 8/8 |
 | `AccountStatusEnum` | 11/11 | 100% | 6/6 |
 
@@ -40,20 +50,18 @@ O `pom.xml` exige:
 A verificação foi executada com:
 
 ```powershell
-.\mvnw.cmd verify "-Dcoverage.check.skip=false" "-Dtest=AccountStatusEnumTest,ApiExceptionMapperTest,AccountAdminServiceTest,AccountAuditServiceTest,AccountCustomerServiceTest,AuthServiceTest"
+.\mvnw.cmd clean verify "-Dcoverage.check.skip=false"
 ```
 
 O JaCoCo informou `All coverage checks have been met`, e o Maven terminou com `BUILD SUCCESS`.
 
 ## 5. Lacunas esperadas nesta etapa
 
-As classes REST e os repositórios permanecem sem cobertura ou com cobertura indireta limitada porque não são o alvo dos testes unitários isolados. Entre elas estão:
+Os demais recursos REST e repositórios permanecem sem cobertura porque seus testes de componente ainda não foram implementados. Entre eles estão:
 
-- `AuthResource`;
 - `AccountCustomerResource`;
 - `AccountAdminResource`;
 - `AccountAuditResource`;
-- `UserRepository`;
 - `AccountRepository`;
 - `AccountAuditRepository`.
 
@@ -61,12 +69,10 @@ Essas lacunas serão tratadas pelos testes de componente com `@QuarkusTest`, Res
 
 ## 6. Reprodutibilidade
 
-Para recriar esta evidência sem incluir testes de componente:
+Para recriar a evidência atual:
 
 ```powershell
-.\mvnw.cmd clean test "-Dtest=AccountStatusEnumTest,ApiExceptionMapperTest,AccountAdminServiceTest,AccountAuditServiceTest,AccountCustomerServiceTest,AuthServiceTest"
-.\mvnw.cmd "-Djacoco.dataFile=target/jacoco-quarkus.exec" jacoco:report
-.\mvnw.cmd verify "-Dcoverage.check.skip=false" "-Dtest=AccountStatusEnumTest,ApiExceptionMapperTest,AccountAdminServiceTest,AccountAuditServiceTest,AccountCustomerServiceTest,AuthServiceTest"
+.\mvnw.cmd clean verify "-Dcoverage.check.skip=false"
 ```
 
 Os arquivos de `target/` são transitórios. Este documento é a evidência versionável dos resultados observados.

@@ -21,9 +21,9 @@
 - Criar: `config/pmd/ruleset.xml` — regras de análise estática aplicadas ao projeto.
 - Criar: `docs/analise-estatica.md` — execução do PMD, apontamentos, correções e justificativas.
 - Criar: `docs/evidencias/` — relatórios e evidências finais das execuções.
-- Criar: `src/test/java/br/edu/ifrs/account/auth/` — testes unitários de autenticação.
+- Criar: `src/test/java/br/edu/ifrs/account/auth/` — testes unitários e de componente da autenticação.
 - Criar: `src/test/java/br/edu/ifrs/account/service/` — testes unitários dos serviços bancários.
-- Criar: `src/test/java/br/edu/ifrs/account/resource/` — testes de componente da API REST.
+- Criar: `src/test/java/br/edu/ifrs/account/resource/` — testes de componente dos recursos bancários e de auditoria.
 - Criar: `src/test/java/br/edu/ifrs/account/system/` — testes de sistema da aplicação empacotada.
 - Criar: `src/test/resources/application.properties` — configuração exclusiva do ambiente de teste.
 - Modificar: `pom.xml` — integração de Mockito, PMD e JaCoCo ao build Maven.

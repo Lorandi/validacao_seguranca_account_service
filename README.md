@@ -11,6 +11,7 @@ O acesso aos endpoints protegidos utiliza tokens JWT e os perfis `CUSTOMER`, `AD
 - [Plano de teste](docs/plano-de-teste.md)
 - [Análise estática](docs/analise-estatica.md)
 - [Evidência dos testes unitários](docs/evidencias/testes-unitarios.md)
+- [Evidência dos testes de componente](docs/evidencias/testes-componente.md)
 - [Evidência de cobertura](docs/evidencias/cobertura.md)
 
 ## Tecnologias
