@@ -1,6 +1,6 @@
 # Evidência dos Testes de Componente
 
-Este documento acompanha progressivamente os testes de componente do Account Service. Em 20/11/2026, os três primeiros lotes revisados cobrem autenticação, autorização, consulta da conta do cliente e depósitos.
+Este documento acompanha progressivamente os testes de componente do Account Service. Em 20/11/2026, os lotes revisados cobrem autenticação, autorização, consulta da conta do cliente, depósitos, saques e transferências.
 
 ## 1. Lote revisado: `AuthResourceTest`
 
@@ -51,7 +51,7 @@ A matriz cobre os seis cruzamentos de perfis incorretos, além dos três endpoin
 
 ## 5. Lote revisado: `AccountCustomerResourceTest`
 
-O teste usa `@QuarkusTest`, RestAssured, Hibernate ORM e H2 reais, sem mocks. Os dois primeiros lotes do recurso do cliente cobrem:
+O teste usa `@QuarkusTest`, RestAssured, Hibernate ORM e H2 reais, sem mocks. Os três primeiros lotes do recurso do cliente cobrem:
 
 - consulta da conta pertencente ao cliente autenticado;
 - depósito válido realizado por um cliente em conta ativa de terceiro;
@@ -63,11 +63,18 @@ O teste usa `@QuarkusTest`, RestAssured, Hibernate ORM e H2 reais, sem mocks. Os
 - tentativa de saque em conta de terceiro;
 - tentativa de saque em conta bloqueada;
 - saque com saldo insuficiente;
-- tentativa de saque em conta inexistente.
+- tentativa de saque em conta inexistente;
+- transferência válida com débito na origem e crédito no destino;
+- valor de transferência ausente, zero ou negativo;
+- transferência com origem e destino iguais;
+- tentativa de transferência a partir de conta de terceiro;
+- origem ou destino bloqueado;
+- transferência com saldo insuficiente;
+- origem ou destino inexistente.
 
-Além dos códigos HTTP e corpos das respostas, são verificados diretamente no H2 os saldos, a ausência de criação acidental de conta e os registros de auditoria `DEPOSIT` e `WITHDRAW`. O teste possui 12 métodos e 16 execuções, considerando os casos parametrizados de valor inválido para depósito e saque.
+Além dos códigos HTTP e corpos das respostas, são verificados diretamente no H2 os saldos, a ausência de criação acidental de conta e os registros de auditoria `DEPOSIT`, `WITHDRAW` e `TRANSFER`. O teste possui 21 métodos e 27 execuções, considerando os casos parametrizados de valor inválido para depósito, saque e transferência.
 
-Os saldos das contas envolvidas e as auditorias de depósito e saque são restaurados antes e depois de cada teste em transação própria. As demais contas de demonstração têm seus saldos conferidos para detectar efeitos colaterais. Os testes não dependem de ordem.
+Os saldos das contas envolvidas e as auditorias de depósito, saque e transferência são restaurados antes e depois de cada teste em transação própria. As demais contas de demonstração têm seus saldos conferidos para detectar efeitos colaterais. Os testes não dependem de ordem.
 
 ## 6. Comandos e resultados
 
@@ -83,7 +90,7 @@ Resultado dos lotes isolados:
 
 - `AuthResourceTest`: 17 execuções;
 - `AuthorizationTest`: 16 execuções;
-- `AccountCustomerResourceTest`: 16 execuções;
+- `AccountCustomerResourceTest`: 27 execuções;
 - nenhuma falha, erro ou teste ignorado;
 - `BUILD SUCCESS`.
 
@@ -95,7 +102,7 @@ Build completo com JDK 25:
 
 Resultado:
 
-- 130 execuções no total;
+- 141 execuções no total;
 - 0 falhas, 0 erros e 0 ignorados;
 - PMD sem violações;
 - limites JaCoCo atendidos;
@@ -105,14 +112,14 @@ Resultado:
 
 Após o lote:
 
-- cobertura geral de linhas: 305/356, ou 85,7%;
+- cobertura geral de linhas: 320/356, ou 89,9%;
 - cobertura de desvios: 42/44, ou 95,5%;
 - `AuthResource`: 4/4 linhas;
 - `UserRepository`: 2/2 linhas;
 - `User`: 11/11 linhas;
 - `AccountAdminResource`: 2/18 linhas;
 - `AccountAuditResource`: 2/5 linhas;
-- `AccountCustomerResource`: 24/50 linhas.
+- `AccountCustomerResource`: 38/50 linhas.
 
 ## 8. Observações
 
@@ -124,4 +131,4 @@ O depósito em conta de terceiro é comportamento permitido pelo projeto. Conta 
 
 ## 9. Escopo restante
 
-Ainda faltam os testes de componente de criação de conta e transferência, além dos recursos de administração e auditoria. Por isso, a etapa de testes de componente permanece em andamento no plano de teste.
+Ainda faltam os testes de componente de criação de conta, além dos recursos de administração e auditoria. Por isso, a etapa de testes de componente permanece em andamento no plano de teste.
