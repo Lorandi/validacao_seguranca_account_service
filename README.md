@@ -288,9 +288,11 @@ Falhas inesperadas retornam `500 Internal Server Error` com um identificador par
 {
   "errorId": "76d2044d-ecc3-41b8-9648-ea2fa90bed52",
   "status": 500,
-  "error": "Mensagem da falha inesperada"
+  "error": "Erro inesperado."
 }
 ```
+
+Os detalhes da falha ficam registrados apenas no log da aplicação e podem ser localizados pelo `errorId` retornado na resposta.
 
 ## Persistência
 

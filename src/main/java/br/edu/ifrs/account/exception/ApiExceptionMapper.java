@@ -7,6 +7,7 @@ import jakarta.ws.rs.ext.Provider;
 import org.jboss.logging.Logger;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 
@@ -14,6 +15,7 @@ import java.util.UUID;
 public class ApiExceptionMapper implements ExceptionMapper<Exception> {
 
     private static final Logger LOG = Logger.getLogger(ApiExceptionMapper.class);
+    private static final String DEFAULT_MESSAGE = "Erro inesperado.";
 
     @Override
     public Response toResponse(Exception e) {
@@ -31,11 +33,15 @@ public class ApiExceptionMapper implements ExceptionMapper<Exception> {
             LOG.warnf("ErrorID=%s | Status=%d | Message=%s", errorId, status, e.getMessage());
         }
 
+        String message = status >= 500
+                ? DEFAULT_MESSAGE
+                : Objects.requireNonNullElse(e.getMessage(), DEFAULT_MESSAGE);
+
         return Response.status(status)
                 .entity(Map.of(
                         "errorId", errorId,
                         "status", status,
-                        "error", e.getMessage()
+                        "error", message
                 ))
                 .build();
     }
