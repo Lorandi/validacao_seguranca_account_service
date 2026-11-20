@@ -100,7 +100,7 @@ Os repositórios, o token atual e os serviços auxiliares serão simulados com M
 
 - `AuthResourceTest`: cadastro, validação de entrada, login e falha de autenticação.
 - `AccountCustomerResourceTest`: criação, consulta, depósito, saque, transferência e regras de borda concluídos, incluindo cliente sem conta e criação duplicada.
-- `AccountAdminResourceTest`: listagem, consulta, bloqueio e desbloqueio.
+- `AccountAdminResourceTest`: listagem, consulta, bloqueio e desbloqueio concluídos, incluindo conta inexistente e auditoria de falha.
 - `AccountAuditResourceTest`: listagem, filtro por proprietário e filtro por conta.
 - `AuthorizationTest`: ausência de token e perfis sem permissão.
 
@@ -312,7 +312,7 @@ Resultados esperados:
 - [x] PMD integrado ao Maven e relatório inicial gerado.
 - [x] Mockito e JaCoCo integrados ao Maven.
 - [x] Testes unitários implementados e cobertura medida.
-- [ ] Testes de componente implementados — autenticação, autorização e recurso do cliente concluídos; administração e auditoria pendentes. Correção de `NotSupportedException` para HTTP 415 validada; demais exceções HTTP não mapeadas permanecem registradas nas evidências.
+- [ ] Testes de componente implementados — autenticação, autorização, recurso do cliente e administração concluídos; auditoria pendente. Correção de `NotSupportedException` para HTTP 415 validada; demais exceções HTTP não mapeadas permanecem registradas nas evidências.
 - [ ] Testes de sistema implementados.
 - [ ] Apontamentos estáticos corrigidos ou justificados.
 - [ ] Evidências consolidadas em `docs/evidencias/`.

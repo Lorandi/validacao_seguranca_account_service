@@ -1,6 +1,6 @@
 # Evidência de Cobertura Automatizada
 
-Este documento registra a cobertura obtida em 20/11/2026 com as seis classes de testes unitários e os testes de componente `AuthResourceTest`, `AuthorizationTest` e `AccountCustomerResourceTest`. Testes de sistema ainda não fazem parte destes números.
+Este documento registra a cobertura obtida em 20/11/2026 com as seis classes de testes unitários e os testes de componente `AuthResourceTest`, `AuthorizationTest`, `AccountCustomerResourceTest` e `AccountAdminResourceTest`. Testes de sistema ainda não fazem parte destes números.
 
 ## 1. Geração do relatório
 
@@ -16,7 +16,7 @@ O relatório navegável foi gerado pela extensão `quarkus-jacoco` em `target/ja
 
 | Métrica | Coberto | Total | Percentual |
 | --- | ---: | ---: | ---: |
-| Linhas | 335 | 359 | **93,3%** |
+| Linhas | 351 | 359 | **97,8%** |
 | Desvios | 45 | 47 | **95,7%** |
 
 Evolução observada:
@@ -31,6 +31,7 @@ Evolução observada:
 | Unitários + componente de transferência | 320/356 | 89,9% |
 | Unitários + componente de criação e consulta sem conta | 332/356 | 93,3% |
 | Correção HTTP 415 e testes de regressão | 335/359 | 93,3% |
+| Testes de componente administrativos | 351/359 | 97,8% |
 
 ## 3. Classes centrais
 
@@ -45,7 +46,7 @@ Evolução observada:
 | `User` | 11/11 | 100% | não aplicável |
 | `ApiExceptionMapper` | 22/22 | 100% | 11/11 |
 | `AccountStatusEnum` | 11/11 | 100% | 6/6 |
-| `AccountAdminResource` | 2/18 | 11,1% | não aplicável |
+| `AccountAdminResource` | 18/18 | 100% | não aplicável |
 | `AccountAuditResource` | 2/5 | 40,0% | não aplicável |
 | `AccountCustomerResource` | 50/50 | 100% | não aplicável |
 
@@ -68,7 +69,6 @@ O JaCoCo informou `All coverage checks have been met`, e o Maven terminou com `B
 
 Os endpoints GET representativos dos recursos protegidos possuem cobertura parcial por causa do `AuthorizationTest`. A consulta da conta do cliente e os principais resultados de depósito, saque e transferência também são exercitados pelo `AccountCustomerResourceTest`, mas os demais fluxos REST e repositórios continuam pendentes. Entre as lacunas estão:
 
-- consulta individual e alteração de status em `AccountAdminResource`;
 - filtros e consulta de registros em `AccountAuditResource`;
 - `AccountRepository`;
 - `AccountAuditRepository`.
