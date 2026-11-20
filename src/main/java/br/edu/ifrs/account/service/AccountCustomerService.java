@@ -84,8 +84,9 @@ public class AccountCustomerService {
 
     @Transactional
     public void withdraw(String accountId, BigDecimal amount) {
-        Long userId = getUserIdFromToken(jwt);
+        Long userId = null;
         try {
+            userId = getUserIdFromToken(jwt);
             verificaValorPositivo(amount);
             Account account = findByAccountIdOrThrow(accountId);
             verificaProprietario(userId, account);
@@ -105,8 +106,9 @@ public class AccountCustomerService {
 
     @Transactional
     public void transfer(String sourceAccountId, String targetAccountId, BigDecimal amount) {
-        Long userId = getUserIdFromToken(jwt);
+        Long userId = null;
         try {
+            userId = getUserIdFromToken(jwt);
             verificaValorPositivo(amount);
             verificaContasDiferentes(sourceAccountId, targetAccountId);
 
@@ -133,13 +135,19 @@ public class AccountCustomerService {
     }
 
     private static Long getUserIdFromToken(JsonWebToken jwt) {
-        Long userId;
         Object claim = jwt.getClaim("userId");
         if (claim == null) {
             throw new IllegalStateException("Token não contém o claim 'userId'.");
         }
-        userId = claim.toString().isEmpty() ? null : Long.parseLong(claim.toString());
-        return userId;
+        String value = claim.toString();
+        if (value.isEmpty()) {
+            return null;
+        }
+        try {
+            return Long.parseLong(value);
+        } catch (NumberFormatException e) {
+            throw new IllegalStateException("Token contém um 'userId' inválido.", e);
+        }
     }
 
     private static void checkTokenComUserId(Long userId) {
