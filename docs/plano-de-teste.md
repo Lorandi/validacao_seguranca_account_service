@@ -309,9 +309,9 @@ Resultados esperados:
 ## 18. Acompanhamento da execução
 
 - [x] Plano de teste criado.
-- [ ] PMD integrado ao Maven e relatório inicial gerado.
-- [ ] Mockito e JaCoCo integrados ao Maven.
-- [ ] Testes unitários implementados e cobertura medida.
+- [x] PMD integrado ao Maven e relatório inicial gerado.
+- [x] Mockito e JaCoCo integrados ao Maven.
+- [x] Testes unitários implementados e cobertura medida.
 - [ ] Testes de componente implementados.
 - [ ] Testes de sistema implementados.
 - [ ] Apontamentos estáticos corrigidos ou justificados.
