@@ -149,8 +149,122 @@ Exigem o perfil `AUDITOR`.
 - O token contém o identificador do usuário no claim `userId` e o perfil no claim `groups`.
 - O emissor esperado e utilizado pelos tokens é `users-issuer`.
 
+## Tratamento de erros
+
+A API utiliza códigos HTTP para representar falhas de autenticação, autorização, validação e regras de negócio.
+
+| Código HTTP | Exceção ou origem | Situações |
+| --- | --- | --- |
+| `400 Bad Request` | `IllegalArgumentException` | Valor nulo ou negativo, contas de origem e destino iguais, usuário não proprietário da conta ou nome de usuário já cadastrado |
+| `400 Bad Request` | Bean Validation | Campos obrigatórios ausentes, nome de usuário menor que 3 caracteres ou senha menor que 8 caracteres |
+| `401 Unauthorized` | `InvalidCredentialsException` | Usuário inexistente ou senha incorreta |
+| `401 Unauthorized` | SmallRye JWT | Token ausente, inválido, expirado ou assinado com uma chave diferente |
+| `403 Forbidden` | Segurança do Quarkus | Usuário autenticado sem o perfil exigido pelo endpoint |
+| `404 Not Found` | Tratamento do recurso | Conta ou conta do proprietário não encontrada em endpoints de consulta e administração |
+| `409 Conflict` | `IllegalStateException` | Conta bloqueada, saldo insuficiente ou conflito com o estado atual da conta |
+| `500 Internal Server Error` | Exceção não tratada | Falha inesperada durante o processamento da requisição |
+
+### Credenciais inválidas
+
+O login retorna `401 Unauthorized` quando o usuário não existe ou a senha está incorreta.
+
+```json
+{
+  "errorId": "74b4709e-0cd0-4e04-a031-08fe454c521e",
+  "status": 401,
+  "error": "Credenciais inválidas."
+}
+```
+
+### Dados inválidos
+
+Operações com valor igual ou menor que zero retornam `400 Bad Request`.
+
+```json
+{
+  "error": "O valor deve ser maior que zero."
+}
+```
+
+Outras situações que retornam `400` incluem:
+
+- nome de usuário já cadastrado;
+- usuário tentando movimentar uma conta da qual não é proprietário;
+- conta de origem igual à conta de destino;
+- campos obrigatórios ausentes;
+- senha com menos de 8 caracteres.
+
+### Recurso não encontrado
+
+Consultas de contas inexistentes retornam `404 Not Found`.
+
+```json
+{
+  "error": "Conta não encontrada: ACC9999"
+}
+```
+
+### Conflito com a regra de negócio
+
+Operações incompatíveis com o estado atual da conta retornam `409 Conflict`.
+
+Exemplo de conta bloqueada:
+
+```json
+{
+  "error": "Conta bloqueada: ACC1005"
+}
+```
+
+Exemplo de saldo insuficiente:
+
+```json
+{
+  "error": "Saldo insuficiente."
+}
+```
+
+### Token ausente ou inválido
+
+Endpoints protegidos sem um JWT válido retornam:
+
+```text
+401 Unauthorized
+```
+
+O token pode ser recusado quando:
+
+- não foi enviado;
+- está expirado;
+- possui assinatura inválida;
+- utiliza um emissor diferente de `users-issuer`.
+
+### Perfil sem permissão
+
+Um JWT válido sem o perfil exigido retorna:
+
+```text
+403 Forbidden
+```
+
+Exemplos:
+
+- `CUSTOMER` tentando acessar endpoints administrativos;
+- `ADMIN` tentando acessar endpoints de auditoria;
+- `AUDITOR` tentando realizar operações bancárias.
+
+### Erro interno
+
+Falhas inesperadas retornam `500 Internal Server Error` com um identificador para rastreamento:
+
+```json
+{
+  "errorId": "76d2044d-ecc3-41b8-9648-ea2fa90bed52",
+  "status": 500,
+  "error": "Mensagem da falha inesperada"
+}
+```
+
 ## Persistência
 
 O banco H2 é executado em memória. O esquema e os dados iniciais são carregados na inicialização por meio do arquivo `src/main/resources/import.sql`.
-
-Essa configuração é adequada para desenvolvimento e demonstração do projeto.
