@@ -99,7 +99,7 @@ Os repositórios, o token atual e os serviços auxiliares serão simulados com M
 ### 4.2 Testes de componente planejados
 
 - `AuthResourceTest`: cadastro, validação de entrada, login e falha de autenticação.
-- `AccountCustomerResourceTest`: consulta, depósito, saque, transferência e regras de borda.
+- `AccountCustomerResourceTest`: consulta, depósito, saque, transferência e regras de borda. Consulta e depósito concluídos; saque e transferência permanecem pendentes.
 - `AccountAdminResourceTest`: listagem, consulta, bloqueio e desbloqueio.
 - `AccountAuditResourceTest`: listagem, filtro por proprietário e filtro por conta.
 - `AuthorizationTest`: ausência de token e perfis sem permissão.
@@ -312,7 +312,7 @@ Resultados esperados:
 - [x] PMD integrado ao Maven e relatório inicial gerado.
 - [x] Mockito e JaCoCo integrados ao Maven.
 - [x] Testes unitários implementados e cobertura medida.
-- [ ] Testes de componente implementados.
+- [ ] Testes de componente implementados — autenticação, autorização, consulta da conta e depósito concluídos; demais operações em andamento.
 - [ ] Testes de sistema implementados.
 - [ ] Apontamentos estáticos corrigidos ou justificados.
 - [ ] Evidências consolidadas em `docs/evidencias/`.
