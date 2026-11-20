@@ -19,6 +19,7 @@ import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import jakarta.inject.Inject;
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -45,7 +46,9 @@ class AccountCustomerResourceTest {
 
     private static final String DEPOSIT_ACTION = "DEPOSIT";
     private static final String WITHDRAW_ACTION = "WITHDRAW";
-    private static final List<String> TOUCHED_ACTIONS = List.of(DEPOSIT_ACTION, WITHDRAW_ACTION);
+    private static final String TRANSFER_ACTION = "TRANSFER";
+    private static final String TRANSFER_PATH = "/api/v1/accounts/{accountId}/transfer";
+    private static final List<String> TOUCHED_ACTIONS = List.of(DEPOSIT_ACTION, WITHDRAW_ACTION, TRANSFER_ACTION);
     private static final String INVALID_AMOUNT_MESSAGE = "O valor deve ser maior que zero.";
 
     private static final BigDecimal CUSTOMER_ACCOUNT_BALANCE = new BigDecimal("2750.50");
@@ -319,7 +322,153 @@ class AccountCustomerResourceTest {
         assertWithdrawFailureAudit(2L, MISSING_ACCOUNT, new BigDecimal("10.00"), "Conta não encontrada: ACC9999");
     }
 
+    // ---------- transferência ----------
+
+    @Test
+    void transferShouldMoveFundsBetweenAccountsAndAuditTheSuccess() {
+        Response response = given()
+                .auth().oauth2(customerToken())
+                .contentType(ContentType.JSON)
+                .body(transferBody(ACTIVE_THIRD_PARTY_ACCOUNT, "25.50"))
+                .when().patch(TRANSFER_PATH, CUSTOMER_ACCOUNT)
+                .then()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("message", equalTo("Transferência realizada com sucesso!"))
+                .body("from", equalTo(CUSTOMER_ACCOUNT))
+                .body("to", equalTo(ACTIVE_THIRD_PARTY_ACCOUNT))
+                .extract().response();
+
+        assertMoney(new BigDecimal("25.50"), bigDecimalFrom(response, "amount"));
+        assertBalances(new BigDecimal("2725.00"), new BigDecimal("525.50"), BLOCKED_ACCOUNT_BALANCE);
+
+        List<AccountAudit> audits = auditsFor(TRANSFER_ACTION);
+        assertEquals(1, audits.size());
+        AccountAudit audit = audits.get(0);
+        assertEquals(TRANSFER_ACTION, audit.getAction());
+        assertEquals("SUCCESS", audit.getResult());
+        assertEquals(2L, audit.getOwnerId());
+        assertEquals(CUSTOMER_ACCOUNT, audit.getSourceAccountId());
+        assertEquals(ACTIVE_THIRD_PARTY_ACCOUNT, audit.getTargetAccountId());
+        assertMoney(new BigDecimal("25.50"), audit.getAmount());
+        assertNull(audit.getErrorMessage());
+        assertNotNull(audit.getOperationId());
+        assertNotNull(audit.getTimestamp());
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("invalidAmounts")
+    void transferShouldReturn400AndPreserveBalancesWhenAmountIsInvalid(
+            String scenario, String amountParam, BigDecimal expectedAuditAmount) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("targetAccountId", ACTIVE_THIRD_PARTY_ACCOUNT);
+        if (amountParam != null) {
+            body.put("amount", new BigDecimal(amountParam));
+        }
+
+        given()
+                .auth().oauth2(customerToken())
+                .contentType(ContentType.JSON)
+                .body(body)
+                .when().patch(TRANSFER_PATH, CUSTOMER_ACCOUNT)
+                .then()
+                .statusCode(400)
+                .body("error", equalTo(INVALID_AMOUNT_MESSAGE));
+
+        assertOriginalBalances();
+        assertTransferFailureAudit(
+                2L, CUSTOMER_ACCOUNT, ACTIVE_THIRD_PARTY_ACCOUNT, expectedAuditAmount, INVALID_AMOUNT_MESSAGE);
+    }
+
+    @Test
+    void transferShouldReturn400WhenSourceAndTargetAreTheSameAccount() {
+        assertRejectedTransfer(customerToken(), CUSTOMER_ACCOUNT, CUSTOMER_ACCOUNT, "10.00", 400,
+                2L, "Conta de origem e destino não podem ser iguais.");
+    }
+
+    @Test
+    void transferShouldReturn400WhenSourceAccountBelongsToAnotherUser() {
+        assertRejectedTransfer(customerToken(), ACTIVE_THIRD_PARTY_ACCOUNT, CUSTOMER_ACCOUNT, "10.00", 400,
+                2L, "Usuário não é dono da conta ACC1004");
+    }
+
+    @Test
+    void transferShouldReturn409WhenSourceAccountIsBlocked() {
+        assertRejectedTransfer(token("customer_blocked", "blocked123"), BLOCKED_ACCOUNT,
+                ACTIVE_THIRD_PARTY_ACCOUNT, "10.00", 409, 5L, "Conta bloqueada: ACC1005");
+    }
+
+    @Test
+    void transferShouldReturn409WhenBalanceIsInsufficient() {
+        assertRejectedTransfer(customerToken(), CUSTOMER_ACCOUNT, ACTIVE_THIRD_PARTY_ACCOUNT, "2750.51", 409,
+                2L, "Saldo insuficiente.");
+    }
+
+    @Test
+    void transferShouldReturn400AndNotCreateAccountWhenSourceAccountDoesNotExist() {
+        assertRejectedTransfer(customerToken(), MISSING_ACCOUNT, ACTIVE_THIRD_PARTY_ACCOUNT, "10.00", 400,
+                2L, "Conta não encontrada: ACC9999");
+        assertAccountsWereNotCreated();
+    }
+
+    @Test
+    void transferShouldReturn400AndPreserveSourceBalanceWhenTargetAccountDoesNotExist() {
+        assertRejectedTransfer(customerToken(), CUSTOMER_ACCOUNT, MISSING_ACCOUNT, "10.00", 400,
+                2L, "Conta não encontrada: ACC9999");
+        assertAccountsWereNotCreated();
+    }
+
+    @Test
+    void transferShouldReturn409WhenTargetAccountIsBlocked() {
+        assertRejectedTransfer(customerToken(), CUSTOMER_ACCOUNT, BLOCKED_ACCOUNT, "10.00", 409,
+                2L, "Conta bloqueada: ACC1005");
+    }
+
     // ---------- helpers ----------
+
+    private static Map<String, Object> transferBody(String targetAccountId, String amount) {
+        return Map.of("targetAccountId", targetAccountId, "amount", new BigDecimal(amount));
+    }
+
+    private void assertRejectedTransfer(String token, String source, String target, String amount,
+                                        int expectedStatus, Long expectedOwnerId, String expectedMessage) {
+        given()
+                .auth().oauth2(token)
+                .contentType(ContentType.JSON)
+                .body(transferBody(target, amount))
+                .when().patch(TRANSFER_PATH, source)
+                .then()
+                .statusCode(expectedStatus)
+                .body("error", equalTo(expectedMessage));
+
+        assertOriginalBalances();
+        assertTransferFailureAudit(expectedOwnerId, source, target, new BigDecimal(amount), expectedMessage);
+    }
+
+    private void assertAccountsWereNotCreated() {
+        assertEquals(0, accountsNamed(MISSING_ACCOUNT));
+        assertEquals(accountCountBeforeTest, QuarkusTransaction.requiringNew().call(() -> accountRepository.count()));
+    }
+
+    private void assertTransferFailureAudit(Long expectedOwnerId, String source, String target,
+                                            BigDecimal expectedAmount, String expectedMessage) {
+        List<AccountAudit> audits = auditsFor(TRANSFER_ACTION);
+        assertEquals(1, audits.size(), "Deve existir exatamente uma auditoria de transferência");
+        AccountAudit audit = audits.get(0);
+        assertEquals(TRANSFER_ACTION, audit.getAction());
+        assertEquals("FAILURE", audit.getResult());
+        assertEquals(expectedOwnerId, audit.getOwnerId());
+        assertEquals(source, audit.getSourceAccountId());
+        assertEquals(target, audit.getTargetAccountId());
+        if (expectedAmount == null) {
+            assertNull(audit.getAmount());
+        } else {
+            assertMoney(expectedAmount, audit.getAmount());
+        }
+        assertEquals(expectedMessage, audit.getErrorMessage());
+        assertNotNull(audit.getOperationId());
+        assertNotNull(audit.getTimestamp());
+    }
 
     private static String customerToken() {
         return token("customer", "customer123");
