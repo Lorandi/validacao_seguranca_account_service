@@ -1,13 +1,13 @@
 # Evidência de Cobertura Automatizada
 
-Este documento registra a cobertura obtida em 20/11/2026 com as seis classes de testes unitários e os testes de componente `AuthResourceTest`, `AuthorizationTest`, `AccountCustomerResourceTest` e `AccountAdminResourceTest`. Testes de sistema ainda não fazem parte destes números.
+Este documento registra a cobertura obtida em 20/11/2026 com as seis classes de testes unitários e os testes de componente `AuthResourceTest`, `AuthorizationTest`, `AccountCustomerResourceTest`, `AccountAdminResourceTest` e `AccountAuditResourceTest`. O primeiro teste de sistema já é executado pelo Failsafe, mas não faz parte destes números porque o processo externo da aplicação empacotada não está instrumentado pelo JaCoCo.
 
 ## 1. Geração do relatório
 
 O build completo e a verificação dos limites foram executados com JDK 25:
 
 ```powershell
-.\mvnw.cmd clean verify "-Dcoverage.check.skip=false"
+.\mvnw.cmd clean verify "-DskipITs=false" "-Dcoverage.check.skip=false"
 ```
 
 O relatório navegável foi gerado pela extensão `quarkus-jacoco` em `target/jacoco-report/index.html`, e os dados consolidados foram lidos de `target/jacoco-report/jacoco.csv`.
@@ -33,6 +33,7 @@ Evolução observada:
 | Correção HTTP 415 e testes de regressão | 335/359 | 93,3% |
 | Testes de componente administrativos | 351/359 | 97,8% |
 | Testes de componente de auditoria | 354/359 | 98,6% |
+| Primeiro teste de sistema, sem instrumentação do processo externo | 354/359 | 98,6% |
 
 ## 3. Classes centrais
 
@@ -61,7 +62,7 @@ O `pom.xml` exige:
 A verificação foi executada com:
 
 ```powershell
-.\mvnw.cmd clean verify "-Dcoverage.check.skip=false"
+.\mvnw.cmd clean verify "-DskipITs=false" "-Dcoverage.check.skip=false"
 ```
 
 O JaCoCo informou `All coverage checks have been met`, e o Maven terminou com `BUILD SUCCESS`.
@@ -74,14 +75,14 @@ Os lotes de componente planejados foram concluídos. Todos os resources possuem 
 - `AccountAudit`: duas linhas;
 - `OpenApiConfig`: uma linha.
 
-Não foram criados testes artificiais apenas para aumentar percentuais. Os testes de sistema ainda estão pendentes.
+Não foram criados testes artificiais apenas para aumentar percentuais. O primeiro teste de sistema valida o comportamento do artefato empacotado, mas não altera o relatório atual. Medir cobertura do processo externo exigiria configuração adicional de instrumentação e não foi incluído neste lote.
 
 ## 6. Reprodutibilidade
 
 Para recriar a evidência atual:
 
 ```powershell
-.\mvnw.cmd clean verify "-Dcoverage.check.skip=false"
+.\mvnw.cmd clean verify "-DskipITs=false" "-Dcoverage.check.skip=false"
 ```
 
 Os arquivos de `target/` são transitórios. Este documento é a evidência versionável dos resultados observados.

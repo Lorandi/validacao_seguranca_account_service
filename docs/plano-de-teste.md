@@ -108,7 +108,7 @@ Os testes usarão H2 em memória e dados controlados em `src/test/resources/impo
 
 ### 4.3 Testes de sistema planejados
 
-- Login de cliente, consulta da conta e depósito bem-sucedido.
+- Login de cliente, consulta da conta e depósito bem-sucedido — primeiro lote concluído em `AccountSystemIT`, com restauração do saldo pela API.
 - Saque e transferência com atualização dos saldos.
 - Bloqueio administrativo seguido de operação recusada.
 - Desbloqueio administrativo seguido de operação permitida.
@@ -157,7 +157,7 @@ Os testes de sistema terão nomes terminados em `IT` e serão executados pelo Ma
 | `admin` | `ADMIN` | `ACC1001` | `ACTIVE` |
 | `auditor` | `AUDITOR` | `ACC1003` | `BLOCKED` |
 
-Os testes automatizados não deverão depender diretamente do banco iniciado para demonstração. O ambiente de teste terá dados próprios e reinicializáveis.
+Os testes automatizados não deverão depender de banco externo iniciado para demonstração. Os testes unitários e de componente usam o ambiente do Quarkus Test; os testes de sistema executam uma nova instância do artefato empacotado, com H2 em memória recriado a cada processo e acesso somente pelas interfaces HTTP públicas.
 
 ## 8. Critérios de entrada
 
@@ -245,7 +245,7 @@ Defeitos críticos e altos impedem a conclusão da etapa. Defeitos médios e bai
 | --- | --- | --- | --- |
 | Estado compartilhado entre testes de API | Alta | Alto | Reinicializar dados por teste e não depender da ordem de execução |
 | BCrypt tornar testes lentos | Média | Médio | Concentrar hashing real nos testes de autenticação e usar hashes preparados onde não for objeto do teste |
-| JWT de teste depender da chave de desenvolvimento | Média | Alto | Utilizar configuração e chave exclusivas em `src/test/resources` |
+| JWT de teste depender da chave de desenvolvimento | Média | Alto | Utilizar chaves exclusivas em `src/test/resources` nos testes em processo; nos testes de sistema, validar por HTTP as chaves realmente empacotadas no artefato |
 | Testes unitários acoplados ao Panache | Média | Médio | Simular `PanacheQuery` somente na camada de serviço e validar repositórios em testes de componente |
 | Cobertura alta sem testar comportamento relevante | Média | Alto | Priorizar asserts de regra de negócio e mutações observáveis, não apenas execução de linhas |
 | PMD apontar falsos positivos | Média | Baixo | Justificar cada supressão no relatório de análise estática |
@@ -295,7 +295,7 @@ Arquivos transitórios em `target/` não serão tratados como única evidência,
 .\mvnw.cmd jacoco:report
 
 # Build completo, análise e testes de sistema
-.\mvnw.cmd clean verify
+.\mvnw.cmd clean verify "-DskipITs=false" "-Dcoverage.check.skip=false"
 ```
 
 Resultados esperados:
@@ -313,7 +313,7 @@ Resultados esperados:
 - [x] Mockito e JaCoCo integrados ao Maven.
 - [x] Testes unitários implementados e cobertura medida.
 - [x] Testes de componente implementados.
-- [ ] Testes de sistema implementados.
+- [ ] Testes de sistema implementados — em andamento: primeiro fluxo empacotado validado em `AccountSystemIT`.
 - [ ] Apontamentos estáticos corrigidos ou justificados.
 - [ ] Evidências consolidadas em `docs/evidencias/`.
 - [ ] README atualizado com todos os comandos de reprodução.

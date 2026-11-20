@@ -12,6 +12,7 @@ O acesso aos endpoints protegidos utiliza tokens JWT e os perfis `CUSTOMER`, `AD
 - [Análise estática](docs/analise-estatica.md)
 - [Evidência dos testes unitários](docs/evidencias/testes-unitarios.md)
 - [Evidência dos testes de componente](docs/evidencias/testes-componente.md)
+- [Evidência dos testes de sistema](docs/evidencias/testes-sistema.md)
 - [Evidência de cobertura](docs/evidencias/cobertura.md)
 
 ## Tecnologias
@@ -61,22 +62,23 @@ Comandos para o Windows (PowerShell), executados na pasta do projeto com o Maven
 | `.\mvnw.cmd pmd:pmd` | Executa a análise estática do PMD e gera o relatório, sem falhar o build |
 | `.\mvnw.cmd pmd:check` | Falha o build se o PMD encontrar alguma violação |
 | `.\mvnw.cmd test` | Executa os testes unitários e de componente |
-| `.\mvnw.cmd verify` | Executa testes, PMD, relatório do JaCoCo e verificações finais |
+| `.\mvnw.cmd verify` | Empacota a aplicação e executa testes, PMD, relatório do JaCoCo e testes de sistema pelo Failsafe |
 
 Relatórios gerados (em `target/`, pasta não versionada):
 
 - PMD: `target/pmd.xml` e `target/reports/pmd.html`;
 - JaCoCo: `target/jacoco-report/index.html`, gerado pela extensão `quarkus-jacoco` quando há testes `@QuarkusTest`. Os dados brutos ficam em `target/jacoco-quarkus.exec`, que recebe tanto a cobertura dos testes `@QuarkusTest` quanto a dos testes JUnit/Mockito que não sobem o Quarkus (agente do `jacoco-maven-plugin`), seguindo o arranjo apresentado na página de JaCoCo do material da disciplina.
+- Failsafe: `target/failsafe-reports/`, com os resultados dos testes `@QuarkusIntegrationTest` executados contra o artefato empacotado.
 
 Os limites de cobertura (70% de linhas no total e 80% nos serviços e em `AuthService`) estão configurados no `pom.xml`. A propriedade `coverage.check.skip` permanece `true` por padrão. Para validar os limites, execute:
 
 ```powershell
-.\mvnw.cmd clean verify "-Dcoverage.check.skip=false"
+.\mvnw.cmd clean verify "-DskipITs=false" "-Dcoverage.check.skip=false"
 ```
 
-Na execução validada em 20/11/2026 com JDK 25, os 160 testes passaram, o PMD apresentou zero violações e os limites JaCoCo foram atendidos. A cobertura foi de 354/359 linhas (98,6%) e 45/47 desvios (95,7%). Os testes de componente foram concluídos; os testes de sistema ainda estão pendentes.
+Na execução validada em 20/11/2026 com JDK 25, passaram 160 testes unitários e de componente pelo Surefire e um teste de sistema pelo Failsafe, totalizando 161 execuções, sem falhas, erros ou testes ignorados. O PMD apresentou zero violações e os limites JaCoCo foram atendidos. A cobertura permaneceu em 354/359 linhas (98,6%) e 45/47 desvios (95,7%). Os testes de componente foram concluídos; os testes de sistema estão em andamento.
 
-Os testes usam um par de chaves JWT próprio, em `src/test/resources`, e não as chaves de `src/main/resources`.
+Os testes unitários e de componente usam um par de chaves JWT próprio em `src/test/resources`. O teste de sistema executa o artefato empacotado no perfil de produção e valida, por HTTP, as chaves incluídas em `src/main/resources`.
 
 Detalhes da análise estática: [docs/analise-estatica.md](docs/analise-estatica.md). Estratégia completa de testes: [docs/plano-de-teste.md](docs/plano-de-teste.md).
 
