@@ -16,7 +16,7 @@ O relatório navegável foi gerado pela extensão `quarkus-jacoco` em `target/ja
 
 | Métrica | Coberto | Total | Percentual |
 | --- | ---: | ---: | ---: |
-| Linhas | 294 | 356 | **82,6%** |
+| Linhas | 305 | 356 | **85,7%** |
 | Desvios | 42 | 44 | **95,5%** |
 
 Evolução observada:
@@ -27,6 +27,7 @@ Evolução observada:
 | Unitários + `AuthResourceTest` | 272/356 | 76,4% |
 | Unitários + autenticação e autorização | 281/356 | 78,9% |
 | Unitários + três lotes de componente | 294/356 | 82,6% |
+| Unitários + componente de depósito e saque | 305/356 | 85,7% |
 
 ## 3. Classes centrais
 
@@ -43,7 +44,7 @@ Evolução observada:
 | `AccountStatusEnum` | 11/11 | 100% | 6/6 |
 | `AccountAdminResource` | 2/18 | 11,1% | não aplicável |
 | `AccountAuditResource` | 2/5 | 40,0% | não aplicável |
-| `AccountCustomerResource` | 13/50 | 26,0% | não aplicável |
+| `AccountCustomerResource` | 24/50 | 48,0% | não aplicável |
 
 ## 4. Limites configurados
 
@@ -62,9 +63,9 @@ O JaCoCo informou `All coverage checks have been met`, e o Maven terminou com `B
 
 ## 5. Lacunas esperadas nesta etapa
 
-Os endpoints GET representativos dos recursos protegidos possuem cobertura parcial por causa do `AuthorizationTest`. A consulta da conta do cliente e os principais resultados do depósito também são exercitados pelo `AccountCustomerResourceTest`, mas os demais fluxos REST e repositórios continuam pendentes. Entre as lacunas estão:
+Os endpoints GET representativos dos recursos protegidos possuem cobertura parcial por causa do `AuthorizationTest`. A consulta da conta do cliente e os principais resultados de depósito e saque também são exercitados pelo `AccountCustomerResourceTest`, mas os demais fluxos REST e repositórios continuam pendentes. Entre as lacunas estão:
 
-- operações de criação, saque e transferência em `AccountCustomerResource`;
+- operações de criação e transferência em `AccountCustomerResource`;
 - consulta individual e alteração de status em `AccountAdminResource`;
 - filtros e consulta de registros em `AccountAuditResource`;
 - `AccountRepository`;

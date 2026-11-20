@@ -51,17 +51,23 @@ A matriz cobre os seis cruzamentos de perfis incorretos, além dos três endpoin
 
 ## 5. Lote revisado: `AccountCustomerResourceTest`
 
-O teste usa `@QuarkusTest`, RestAssured, Hibernate ORM e H2 reais, sem mocks. Este primeiro lote do recurso do cliente cobre:
+O teste usa `@QuarkusTest`, RestAssured, Hibernate ORM e H2 reais, sem mocks. Os dois primeiros lotes do recurso do cliente cobrem:
 
 - consulta da conta pertencente ao cliente autenticado;
 - depósito válido realizado por um cliente em conta ativa de terceiro;
 - valor de depósito ausente, zero ou negativo;
 - tentativa de depósito em conta bloqueada;
-- tentativa de depósito em conta inexistente.
+- tentativa de depósito em conta inexistente;
+- saque válido e saque exatamente igual ao saldo disponível;
+- valor de saque ausente, zero ou negativo;
+- tentativa de saque em conta de terceiro;
+- tentativa de saque em conta bloqueada;
+- saque com saldo insuficiente;
+- tentativa de saque em conta inexistente.
 
-Além dos códigos HTTP e corpos das respostas, são verificados diretamente no H2 os saldos, a ausência de criação acidental de conta e os registros de auditoria `DEPOSIT`. O teste possui 5 métodos e 7 execuções, considerando os três casos parametrizados de valor inválido.
+Além dos códigos HTTP e corpos das respostas, são verificados diretamente no H2 os saldos, a ausência de criação acidental de conta e os registros de auditoria `DEPOSIT` e `WITHDRAW`. O teste possui 12 métodos e 16 execuções, considerando os casos parametrizados de valor inválido para depósito e saque.
 
-Os saldos das contas envolvidas e as auditorias de depósito são restaurados antes e depois de cada teste em transação própria. As demais contas de demonstração têm seus saldos conferidos para detectar efeitos colaterais. Os testes não dependem de ordem.
+Os saldos das contas envolvidas e as auditorias de depósito e saque são restaurados antes e depois de cada teste em transação própria. As demais contas de demonstração têm seus saldos conferidos para detectar efeitos colaterais. Os testes não dependem de ordem.
 
 ## 6. Comandos e resultados
 
@@ -77,7 +83,7 @@ Resultado dos lotes isolados:
 
 - `AuthResourceTest`: 17 execuções;
 - `AuthorizationTest`: 16 execuções;
-- `AccountCustomerResourceTest`: 7 execuções;
+- `AccountCustomerResourceTest`: 16 execuções;
 - nenhuma falha, erro ou teste ignorado;
 - `BUILD SUCCESS`.
 
@@ -89,7 +95,7 @@ Build completo com JDK 25:
 
 Resultado:
 
-- 121 execuções no total;
+- 130 execuções no total;
 - 0 falhas, 0 erros e 0 ignorados;
 - PMD sem violações;
 - limites JaCoCo atendidos;
@@ -99,14 +105,14 @@ Resultado:
 
 Após o lote:
 
-- cobertura geral de linhas: 294/356, ou 82,6%;
+- cobertura geral de linhas: 305/356, ou 85,7%;
 - cobertura de desvios: 42/44, ou 95,5%;
 - `AuthResource`: 4/4 linhas;
 - `UserRepository`: 2/2 linhas;
 - `User`: 11/11 linhas;
 - `AccountAdminResource`: 2/18 linhas;
 - `AccountAuditResource`: 2/5 linhas;
-- `AccountCustomerResource`: 13/50 linhas.
+- `AccountCustomerResource`: 24/50 linhas.
 
 ## 8. Observações
 
@@ -118,4 +124,4 @@ O depósito em conta de terceiro é comportamento permitido pelo projeto. Conta 
 
 ## 9. Escopo restante
 
-Ainda faltam os testes de componente de criação de conta, saque e transferência, além dos recursos de administração e auditoria. Por isso, a etapa de testes de componente permanece em andamento no plano de teste.
+Ainda faltam os testes de componente de criação de conta e transferência, além dos recursos de administração e auditoria. Por isso, a etapa de testes de componente permanece em andamento no plano de teste.
