@@ -16,7 +16,7 @@ O relatório navegável foi gerado pela extensão `quarkus-jacoco` em `target/ja
 
 | Métrica | Coberto | Total | Percentual |
 | --- | ---: | ---: | ---: |
-| Linhas | 351 | 359 | **97,8%** |
+| Linhas | 354 | 359 | **98,6%** |
 | Desvios | 45 | 47 | **95,7%** |
 
 Evolução observada:
@@ -32,6 +32,7 @@ Evolução observada:
 | Unitários + componente de criação e consulta sem conta | 332/356 | 93,3% |
 | Correção HTTP 415 e testes de regressão | 335/359 | 93,3% |
 | Testes de componente administrativos | 351/359 | 97,8% |
+| Testes de componente de auditoria | 354/359 | 98,6% |
 
 ## 3. Classes centrais
 
@@ -47,7 +48,7 @@ Evolução observada:
 | `ApiExceptionMapper` | 22/22 | 100% | 11/11 |
 | `AccountStatusEnum` | 11/11 | 100% | 6/6 |
 | `AccountAdminResource` | 18/18 | 100% | não aplicável |
-| `AccountAuditResource` | 2/5 | 40,0% | não aplicável |
+| `AccountAuditResource` | 5/5 | 100% | não aplicável |
 | `AccountCustomerResource` | 50/50 | 100% | não aplicável |
 
 ## 4. Limites configurados
@@ -67,13 +68,13 @@ O JaCoCo informou `All coverage checks have been met`, e o Maven terminou com `B
 
 ## 5. Lacunas esperadas nesta etapa
 
-Os endpoints GET representativos dos recursos protegidos possuem cobertura parcial por causa do `AuthorizationTest`. A consulta da conta do cliente e os principais resultados de depósito, saque e transferência também são exercitados pelo `AccountCustomerResourceTest`, mas os demais fluxos REST e repositórios continuam pendentes. Entre as lacunas estão:
+Os lotes de componente planejados foram concluídos. Todos os resources possuem 100% de cobertura de linhas, o que não implica cobertura de todas as combinações de entrada. Restam cinco linhas sem cobertura:
 
-- filtros e consulta de registros em `AccountAuditResource`;
-- `AccountRepository`;
-- `AccountAuditRepository`.
+- `AccountAuditRepository`: duas linhas;
+- `AccountAudit`: duas linhas;
+- `OpenApiConfig`: uma linha.
 
-Essas lacunas serão tratadas pelos testes de componente com `@QuarkusTest`, RestAssured e H2. Não foram criados testes artificiais apenas para aumentar percentuais.
+Não foram criados testes artificiais apenas para aumentar percentuais. Os testes de sistema ainda estão pendentes.
 
 ## 6. Reprodutibilidade
 

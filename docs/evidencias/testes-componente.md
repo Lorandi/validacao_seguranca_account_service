@@ -90,6 +90,7 @@ Execução isolada:
 .\mvnw.cmd "-Dtest=AuthorizationTest" test
 .\mvnw.cmd "-Dtest=AccountCustomerResourceTest" test
 .\mvnw.cmd "-Dtest=AccountAdminResourceTest" test
+.\mvnw.cmd "-Dtest=AccountAuditResourceTest" test
 ```
 
 Resultado dos lotes isolados:
@@ -98,6 +99,7 @@ Resultado dos lotes isolados:
 - `AuthorizationTest`: 16 execuções;
 - `AccountCustomerResourceTest`: 31 execuções;
 - `AccountAdminResourceTest`: 6 execuções;
+- `AccountAuditResourceTest`: 8 execuções;
 - nenhuma falha, erro ou teste ignorado;
 - `BUILD SUCCESS`.
 
@@ -109,7 +111,7 @@ Build completo com JDK 25:
 
 Resultado:
 
-- 152 execuções no total;
+- 160 execuções no total;
 - 0 falhas, 0 erros e 0 ignorados;
 - PMD sem violações;
 - limites JaCoCo atendidos;
@@ -119,13 +121,13 @@ Resultado:
 
 Após o lote:
 
-- cobertura geral de linhas: 351/359, ou 97,8%;
+- cobertura geral de linhas: 354/359, ou 98,6%;
 - cobertura de desvios: 45/47, ou 95,7%;
 - `AuthResource`: 4/4 linhas;
 - `UserRepository`: 2/2 linhas;
 - `User`: 11/11 linhas;
 - `AccountAdminResource`: 18/18 linhas;
-- `AccountAuditResource`: 2/5 linhas;
+- `AccountAuditResource`: 5/5 linhas;
 - `AccountCustomerResource`: 50/50 linhas.
 
 ## 8. Observações
@@ -138,7 +140,7 @@ O depósito em conta de terceiro é comportamento permitido pelo projeto. Conta 
 
 ## 9. Escopo restante
 
-Ainda faltam os testes de componente do recurso de auditoria. Por isso, a etapa de testes de componente permanece em andamento no plano de teste.
+Os lotes de componente planejados foram concluídos. A próxima etapa obrigatória é testar a aplicação empacotada no nível de sistema, ainda não iniciado.
 
 ## 10. Correção do tipo de conteúdo não suportado
 
@@ -157,3 +159,13 @@ As consultas validam HTTP 200 ou 404 e ausência de efeitos no banco. As altern�
 Um snapshot de todas as contas verifica quantidade, identificadores, proprietário, saldo e status; somente o status solicitado pode mudar. A preparação e o encerramento restauram os estados de ACC1004 e ACC1005 em transação própria, sem restaurar saldos. A limpeza remove apenas novas auditorias `TOGGLE_STATUS` dos alvos utilizados. A identificação por snapshot pressupõe execução sequencial.
 
 O review reproduziu o build completo com JDK 25: 152 testes aprovados, zero violações PMD, limites JaCoCo atendidos e `AccountAdminResource` com 18/18 linhas cobertas. Os avisos conhecidos de encerramento do JBoss Threads e do PMD permaneceram.
+
+## 12. Lote revisado: `AccountAuditResourceTest`
+
+Os oito testes usam login real de auditor, `@QuarkusTest`, RestAssured e H2, sem mocks. Cobrem listagem completa, recentes com limite dois, limite padrão dez, limite maior que o total, filtros por proprietário e conta e resultados vazios para ambos os filtros.
+
+Cada teste persiste doze fixtures com operationIds UUID, proprietários e contas exclusivos e timestamps distintos em 2100. Os filtros conferem conjuntos exatos, incluindo conta como origem, destino e ambos sem duplicação. A listagem verifica todos os campos de fixtures de sucesso e falha e as chaves JSON; a ordenação admite timestamps iguais sem impor desempate por ID.
+
+Um snapshot completo das auditorias confirma que os GETs não modificam os registros. O encerramento remove somente as fixtures pelos operationIds, em transação própria. O uso de `AccountAuditDTO` para leitura das respostas foi mantido, acompanhado de assertions explícitas do contrato.
+
+O review reproduziu `clean verify` com JDK 25: 160 testes aprovados, zero violações PMD, limites JaCoCo atendidos e cobertura de 354/359 linhas (98,6%), com `AccountAuditResource` em 5/5. Não houve achado alto ou crítico. Os avisos conhecidos permaneceram. Os testes pressupõem ausência de registros externos com os mesmos filtros e timestamps posteriores às fixtures; essa limitação é compatível com o H2 isolado atual.
