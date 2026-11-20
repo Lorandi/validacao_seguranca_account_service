@@ -16,8 +16,8 @@ O relatório navegável foi gerado pela extensão `quarkus-jacoco` em `target/ja
 
 | Métrica | Coberto | Total | Percentual |
 | --- | ---: | ---: | ---: |
-| Linhas | 332 | 356 | **93,3%** |
-| Desvios | 42 | 44 | **95,5%** |
+| Linhas | 335 | 359 | **93,3%** |
+| Desvios | 45 | 47 | **95,7%** |
 
 Evolução observada:
 
@@ -30,6 +30,7 @@ Evolução observada:
 | Unitários + componente de depósito e saque | 305/356 | 85,7% |
 | Unitários + componente de transferência | 320/356 | 89,9% |
 | Unitários + componente de criação e consulta sem conta | 332/356 | 93,3% |
+| Correção HTTP 415 e testes de regressão | 335/359 | 93,3% |
 
 ## 3. Classes centrais
 
@@ -42,7 +43,7 @@ Evolução observada:
 | `AuthResource` | 4/4 | 100% | não aplicável |
 | `UserRepository` | 2/2 | 100% | não aplicável |
 | `User` | 11/11 | 100% | não aplicável |
-| `ApiExceptionMapper` | 19/19 | 100% | 8/8 |
+| `ApiExceptionMapper` | 22/22 | 100% | 11/11 |
 | `AccountStatusEnum` | 11/11 | 100% | 6/6 |
 | `AccountAdminResource` | 2/18 | 11,1% | não aplicável |
 | `AccountAuditResource` | 2/5 | 40,0% | não aplicável |

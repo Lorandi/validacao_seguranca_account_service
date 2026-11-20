@@ -312,7 +312,7 @@ Resultados esperados:
 - [x] PMD integrado ao Maven e relatório inicial gerado.
 - [x] Mockito e JaCoCo integrados ao Maven.
 - [x] Testes unitários implementados e cobertura medida.
-- [ ] Testes de componente implementados — autenticação, autorização e recurso do cliente concluídos; administração e auditoria pendentes. Defeito médio preexistente no tratamento de exceções HTTP registrado nas evidências para correção separada.
+- [ ] Testes de componente implementados — autenticação, autorização e recurso do cliente concluídos; administração e auditoria pendentes. Correção de `NotSupportedException` para HTTP 415 validada; demais exceções HTTP não mapeadas permanecem registradas nas evidências.
 - [ ] Testes de sistema implementados.
 - [ ] Apontamentos estáticos corrigidos ou justificados.
 - [ ] Evidências consolidadas em `docs/evidencias/`.

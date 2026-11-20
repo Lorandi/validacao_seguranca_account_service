@@ -75,7 +75,7 @@ O teste usa `@QuarkusTest`, RestAssured, Hibernate ORM e H2 reais, sem mocks. Os
 - rejeição de criação para cliente que já possui conta;
 - consulta HTTP 404 para cliente sem conta.
 
-Além dos códigos HTTP e corpos das respostas, são verificados diretamente no H2 os saldos, a quantidade de contas e os registros de auditoria `DEPOSIT`, `WITHDRAW`, `TRANSFER` e `CREATE_ACCOUNT`. O teste possui 24 métodos e 30 execuções, considerando os casos parametrizados de valor inválido para depósito, saque e transferência.
+Além dos códigos HTTP e corpos das respostas, são verificados diretamente no H2 os saldos, a quantidade de contas e os registros de auditoria `DEPOSIT`, `WITHDRAW`, `TRANSFER` e `CREATE_ACCOUNT`. O teste possui 25 métodos e 31 execuções, incluindo a regressão HTTP 415 e os casos parametrizados de valor inválido para depósito, saque e transferência.
 
 Os cenários de cliente novo cadastram e autenticam `component_account_user` pela API e usam o ID retornado pelo cadastro. A limpeza remove sua conta antes do usuário. As auditorias de criação são identificadas por diferença em relação aos IDs existentes antes do teste e removidas no encerramento. Essa estratégia pressupõe execução sequencial.
 
@@ -95,7 +95,7 @@ Resultado dos lotes isolados:
 
 - `AuthResourceTest`: 17 execuções;
 - `AuthorizationTest`: 16 execuções;
-- `AccountCustomerResourceTest`: 30 execuções;
+- `AccountCustomerResourceTest`: 31 execuções;
 - nenhuma falha, erro ou teste ignorado;
 - `BUILD SUCCESS`.
 
@@ -107,7 +107,7 @@ Build completo com JDK 25:
 
 Resultado:
 
-- 144 execuções no total;
+- 146 execuções no total;
 - 0 falhas, 0 erros e 0 ignorados;
 - PMD sem violações;
 - limites JaCoCo atendidos;
@@ -117,8 +117,8 @@ Resultado:
 
 Após o lote:
 
-- cobertura geral de linhas: 332/356, ou 93,3%;
-- cobertura de desvios: 42/44, ou 95,5%;
+- cobertura geral de linhas: 335/359, ou 93,3%;
+- cobertura de desvios: 45/47, ou 95,7%;
 - `AuthResource`: 4/4 linhas;
 - `UserRepository`: 2/2 linhas;
 - `User`: 11/11 linhas;
@@ -138,8 +138,10 @@ O depósito em conta de terceiro é comportamento permitido pelo projeto. Conta 
 
 Ainda faltam os testes de componente dos recursos de administração e auditoria. Por isso, a etapa de testes de componente permanece em andamento no plano de teste.
 
-## 10. Defeito preexistente identificado
+## 10. Correção do tipo de conteúdo não suportado
 
 Um POST de criação sem corpo e sem `Content-Type` foi relatado como HTTP 500, com `NotSupportedException` no log. A inspeção do `ApiExceptionMapper` confirmou que exceções HTTP não tratadas especificamente caem no retorno genérico 500. Os testes deste lote enviam `Content-Type: application/json`, conforme o `@Consumes` atual.
 
-O review classificou o defeito como médio: a rejeição por tipo de conteúdo perde o status HTTP apropriado. A correção permanece pendente em lote separado, com teste de regressão para preservar o status de `WebApplicationException`. Nenhum código de produção foi alterado neste lote.
+O defeito médio foi corrigido em lote separado: `NotSupportedException` agora retorna HTTP 415, `errorId`, `status` e a mensagem controlada "Tipo de conteúdo não suportado.". O teste de componente envia POST sem corpo com `Content-Type: text/plain` e verifica a resposta JSON e a preservação de contas, saldos e auditorias. O teste unitário verifica que a mensagem interna da exceção não aparece na resposta.
+
+A outra LLM relatou que os dois novos testes falharam com HTTP 500 antes da correção. No review, o build completo foi reproduzido com 146 testes aprovados, zero violações PMD e limites JaCoCo atendidos. O tratamento é específico para `NotSupportedException`; outras `WebApplicationException` não mapeadas ainda podem retornar 500 e permanecem pendentes.

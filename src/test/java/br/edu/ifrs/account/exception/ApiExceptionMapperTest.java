@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import br.edu.ifrs.account.auth.InvalidCredentialsException;
+import jakarta.ws.rs.NotSupportedException;
 import jakarta.ws.rs.core.Response;
 import java.util.Map;
 import java.util.Set;
@@ -92,6 +93,24 @@ class ApiExceptionMapperTest {
              Response conflict = mapper.toResponse(new IllegalStateException("Saldo insuficiente."))) {
             assertEquals("Credenciais inválidas.", body(unauthorized).get("error"));
             assertEquals("Saldo insuficiente.", body(conflict).get("error"));
+        }
+    }
+
+    @Test
+    void toResponseShouldMapNotSupportedExceptionTo415WithAControlledMessage() {
+        String internalMessage = "RESTEASY003065: Cannot consume content type text/plain at /api/v1/accounts";
+
+        try (Response response = mapper.toResponse(new NotSupportedException(internalMessage))) {
+            Map<String, Object> body = body(response);
+            String errorId = (String) body.get("errorId");
+
+            assertEquals(415, response.getStatus());
+            assertEquals(Set.of("errorId", "status", "error"), body.keySet());
+            assertEquals(415, body.get("status"));
+            assertEquals("Tipo de conteúdo não suportado.", body.get("error"));
+            assertEquals(errorId, UUID.fromString(errorId).toString());
+            assertFalse(body.values().toString().contains("RESTEASY003065"));
+            assertFalse(body.values().toString().contains("/api/v1/accounts"));
         }
     }
 

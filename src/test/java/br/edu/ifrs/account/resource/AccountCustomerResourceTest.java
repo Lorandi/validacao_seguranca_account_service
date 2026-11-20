@@ -2,6 +2,7 @@ package br.edu.ifrs.account.resource;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -459,7 +460,7 @@ class AccountCustomerResourceTest {
         String token = token(EXCLUSIVE_USERNAME, EXCLUSIVE_PASSWORD);
         String expectedAccountId = "CC_" + ownerId;
 
-        // o resource declara @Consumes(JSON); sem Content-Type o POST sem corpo falha com 500 (ver relatório)
+        // o resource declara @Consumes(JSON); os POSTs válidos enviam Content-Type JSON explicitamente
         given()
                 .auth().oauth2(token)
                 .contentType(ContentType.JSON)
@@ -538,6 +539,28 @@ class AccountCustomerResourceTest {
         assertEquals("Usuário id 2 já possui uma conta.", audit.getErrorMessage());
         assertNotNull(audit.getOperationId());
         assertNotNull(audit.getTimestamp());
+    }
+
+    @Test
+    void createShouldReturn415WithoutChangingDataWhenTheContentTypeIsNotSupported() {
+        long auditCountBefore = auditCount();
+
+        given()
+                .auth().oauth2(customerToken())
+                .contentType(ContentType.TEXT)
+                .when().post(ACCOUNTS_PATH)
+                .then()
+                .statusCode(415)
+                .contentType(ContentType.JSON)
+                .body("status", equalTo(415))
+                .body("error", equalTo("Tipo de conteúdo não suportado."))
+                .body("errorId", matchesPattern(
+                        "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"));
+
+        assertEquals(accountCountBeforeTest, accountCount());
+        assertOriginalBalances();
+        assertEquals(auditCountBefore, auditCount());
+        assertEquals(0, newCreateAccountAudits().size());
     }
 
     @Test

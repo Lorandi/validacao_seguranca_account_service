@@ -1,5 +1,6 @@
 package br.edu.ifrs.account.exception;
 
+import jakarta.ws.rs.NotSupportedException;
 import jakarta.ws.rs.core.Response;
 import br.edu.ifrs.account.auth.InvalidCredentialsException;
 import jakarta.ws.rs.ext.ExceptionMapper;
@@ -16,6 +17,7 @@ public class ApiExceptionMapper implements ExceptionMapper<Exception> {
 
     private static final Logger LOG = Logger.getLogger(ApiExceptionMapper.class);
     private static final String DEFAULT_MESSAGE = "Erro inesperado.";
+    private static final String UNSUPPORTED_MEDIA_TYPE_MESSAGE = "Tipo de conteúdo não suportado.";
 
     @Override
     public Response toResponse(Exception e) {
@@ -24,6 +26,7 @@ public class ApiExceptionMapper implements ExceptionMapper<Exception> {
             case InvalidCredentialsException ignored -> Response.Status.UNAUTHORIZED.getStatusCode();
             case IllegalArgumentException ignored -> Response.Status.BAD_REQUEST.getStatusCode();
             case IllegalStateException ignored -> Response.Status.CONFLICT.getStatusCode();
+            case NotSupportedException ignored -> Response.Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode();
             default -> Response.Status.INTERNAL_SERVER_ERROR.getStatusCode();
         };
 
@@ -33,9 +36,14 @@ public class ApiExceptionMapper implements ExceptionMapper<Exception> {
             LOG.warnf("ErrorID=%s | Status=%d | Message=%s", errorId, status, e.getMessage());
         }
 
-        String message = status >= 500
-                ? DEFAULT_MESSAGE
-                : Objects.requireNonNullElse(e.getMessage(), DEFAULT_MESSAGE);
+        String message;
+        if (e instanceof NotSupportedException) {
+            message = UNSUPPORTED_MEDIA_TYPE_MESSAGE;
+        } else if (status >= 500) {
+            message = DEFAULT_MESSAGE;
+        } else {
+            message = Objects.requireNonNullElse(e.getMessage(), DEFAULT_MESSAGE);
+        }
 
         return Response.status(status)
                 .entity(Map.of(

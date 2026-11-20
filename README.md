@@ -68,7 +68,13 @@ Relatórios gerados (em `target/`, pasta não versionada):
 - PMD: `target/pmd.xml` e `target/reports/pmd.html`;
 - JaCoCo: `target/jacoco-report/index.html`, gerado pela extensão `quarkus-jacoco` quando há testes `@QuarkusTest`. Os dados brutos ficam em `target/jacoco-quarkus.exec`, que recebe tanto a cobertura dos testes `@QuarkusTest` quanto a dos testes JUnit/Mockito que não sobem o Quarkus (agente do `jacoco-maven-plugin`), seguindo o arranjo apresentado na página de JaCoCo do material da disciplina.
 
-Os limites de cobertura (70% de linhas no total e 80% nos serviços) já estão configurados no `pom.xml`, mas ficam **desativados** enquanto os testes não são implementados. Para ativá-los, use `.\mvnw.cmd verify -Dcoverage.check.skip=false` ou altere a propriedade `coverage.check.skip` no `pom.xml`.
+Os limites de cobertura (70% de linhas no total e 80% nos serviços e em `AuthService`) estão configurados no `pom.xml`. A propriedade `coverage.check.skip` permanece `true` por padrão. Para validar os limites, execute:
+
+```powershell
+.\mvnw.cmd clean verify "-Dcoverage.check.skip=false"
+```
+
+Na execução validada em 20/11/2026 com JDK 25, os 146 testes passaram, o PMD apresentou zero violações e os limites JaCoCo foram atendidos. A cobertura foi de 335/359 linhas (93,3%) e 45/47 desvios (95,7%). Os testes de componente de administração e auditoria e os testes de sistema ainda estão pendentes.
 
 Os testes usam um par de chaves JWT próprio, em `src/test/resources`, e não as chaves de `src/main/resources`.
 
@@ -192,6 +198,7 @@ A API utiliza códigos HTTP para representar falhas de autenticação, autoriza�
 | `403 Forbidden` | Segurança do Quarkus | Usuário autenticado sem o perfil exigido pelo endpoint |
 | `404 Not Found` | Tratamento do recurso | Conta ou conta do proprietário não encontrada em endpoints de consulta e administração |
 | `409 Conflict` | `IllegalStateException` | Conta bloqueada, saldo insuficiente ou conflito com o estado atual da conta |
+| `415 Unsupported Media Type` | `NotSupportedException` | Tipo de conteúdo incompatível com o endpoint |
 | `500 Internal Server Error` | Exceção não tratada | Falha inesperada durante o processamento da requisição |
 
 ### Credenciais inválidas
@@ -282,6 +289,20 @@ Exemplos:
 - `CUSTOMER` tentando acessar endpoints administrativos;
 - `ADMIN` tentando acessar endpoints de auditoria;
 - `AUDITOR` tentando realizar operações bancárias.
+
+### Tipo de conteúdo não suportado
+
+Os POSTs válidos de criação de conta devem enviar `Content-Type: application/json`, mesmo sem corpo. Um tipo incompatível, como `text/plain`, retorna `415 Unsupported Media Type` com mensagem controlada:
+
+```json
+{
+  "errorId": "76d2044d-ecc3-41b8-9648-ea2fa90bed52",
+  "status": 415,
+  "error": "Tipo de conteúdo não suportado."
+}
+```
+
+Esse tratamento é específico para `NotSupportedException`. Outras exceções HTTP não mapeadas explicitamente ainda podem cair no retorno genérico 500; essa limitação permanece pendente.
 
 ### Erro interno
 
