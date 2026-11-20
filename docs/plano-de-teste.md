@@ -312,7 +312,7 @@ Resultados esperados:
 - [x] PMD integrado ao Maven e relatório inicial gerado.
 - [x] Mockito e JaCoCo integrados ao Maven.
 - [x] Testes unitários implementados e cobertura medida.
-- [x] Testes de componente implementados
+- [x] Testes de componente implementados.
 - [ ] Testes de sistema implementados.
 - [ ] Apontamentos estáticos corrigidos ou justificados.
 - [ ] Evidências consolidadas em `docs/evidencias/`.
