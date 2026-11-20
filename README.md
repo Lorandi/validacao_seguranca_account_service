@@ -9,6 +9,7 @@ O acesso aos endpoints protegidos utiliza tokens JWT e os perfis `CUSTOMER`, `AD
 ## Documentação do projeto
 
 - [Plano de teste](docs/plano-de-teste.md)
+- [Análise estática](docs/analise-estatica.md)
 
 ## Tecnologias
 
@@ -47,6 +48,28 @@ Para compilar e validar o projeto:
 mvn test
 mvn package
 ```
+
+## Verificação e qualidade
+
+Comandos para o Windows (PowerShell), executados na pasta do projeto com o Maven Wrapper:
+
+| Comando | O que faz |
+| --- | --- |
+| `.\mvnw.cmd pmd:pmd` | Executa a análise estática do PMD e gera o relatório, sem falhar o build |
+| `.\mvnw.cmd pmd:check` | Falha o build se o PMD encontrar alguma violação |
+| `.\mvnw.cmd test` | Executa os testes unitários e de componente |
+| `.\mvnw.cmd verify` | Executa testes, PMD, relatório do JaCoCo e verificações finais |
+
+Relatórios gerados (em `target/`, pasta não versionada):
+
+- PMD: `target/pmd.xml` e `target/reports/pmd.html`;
+- JaCoCo: `target/jacoco-report/index.html`, gerado pela extensão `quarkus-jacoco` quando há testes `@QuarkusTest`. Os dados brutos ficam em `target/jacoco-quarkus.exec`, que recebe tanto a cobertura dos testes `@QuarkusTest` quanto a dos testes JUnit/Mockito que não sobem o Quarkus (agente do `jacoco-maven-plugin`), seguindo o arranjo apresentado na página de JaCoCo do material da disciplina.
+
+Os limites de cobertura (70% de linhas no total e 80% nos serviços) já estão configurados no `pom.xml`, mas ficam **desativados** enquanto os testes não são implementados. Para ativá-los, use `.\mvnw.cmd verify -Dcoverage.check.skip=false` ou altere a propriedade `coverage.check.skip` no `pom.xml`.
+
+Os testes usam um par de chaves JWT próprio, em `src/test/resources`, e não as chaves de `src/main/resources`.
+
+Detalhes da análise estática: [docs/analise-estatica.md](docs/analise-estatica.md). Estratégia completa de testes: [docs/plano-de-teste.md](docs/plano-de-teste.md).
 
 ## Autenticação
 
