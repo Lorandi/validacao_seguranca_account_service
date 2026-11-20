@@ -110,11 +110,11 @@ Os testes usarão H2 em memória e dados controlados em `src/test/resources/impo
 
 - Login de cliente, consulta da conta e depósito bem-sucedido — primeiro lote concluído em `AccountSystemIT`, com restauração do saldo pela API.
 - Saque e transferência com atualização e restauração dos saldos — concluídos em `AccountSystemIT`.
-- Bloqueio administrativo seguido de operação recusada.
-- Desbloqueio administrativo seguido de operação permitida.
+- Bloqueio administrativo seguido de operação recusada — concluído em `AccountAdminSecurityIT`.
+- Desbloqueio administrativo seguido de operação permitida — concluído em `AccountAdminSecurityIT`.
 - Operação bancária seguida de consulta do registro pelo auditor — concluída para transferência em `AccountSystemIT`.
-- Login inválido retornando `401`.
-- Cliente tentando endpoint administrativo e recebendo `403`.
+- Login inválido retornando `401` — concluído em `AccountAdminSecurityIT`.
+- Cliente tentando endpoint administrativo e recebendo `403` — concluído em `AccountAdminSecurityIT`.
 
 Os testes de sistema terão nomes terminados em `IT` e serão executados pelo Maven Failsafe durante `mvn verify`.
 
@@ -313,9 +313,9 @@ Resultados esperados:
 - [x] Mockito e JaCoCo integrados ao Maven.
 - [x] Testes unitários implementados e cobertura medida.
 - [x] Testes de componente implementados.
-- [ ] Testes de sistema implementados — em andamento: três fluxos empacotados validados em `AccountSystemIT`; administração e segurança permanecem pendentes.
-- [ ] Apontamentos estáticos corrigidos ou justificados.
-- [ ] Evidências consolidadas em `docs/evidencias/`.
-- [ ] README atualizado com todos os comandos de reprodução.
+- [x] Testes de sistema implementados.
+- [x] Apontamentos estáticos corrigidos ou justificados.
+- [x] Evidências consolidadas em `docs/evidencias/`.
+- [x] README atualizado com todos os comandos de reprodução.
 - [ ] Testes de segurança opcionais executados.
 - [ ] Testes de carga opcionais executados.
