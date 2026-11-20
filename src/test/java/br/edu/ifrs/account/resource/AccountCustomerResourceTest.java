@@ -6,7 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import br.edu.ifrs.account.auth.UserRepository;
 import br.edu.ifrs.account.entity.Account;
+import br.edu.ifrs.account.enums.AccountStatusEnum;
 import br.edu.ifrs.account.entity.AccountAudit;
 import br.edu.ifrs.account.repository.AccountAuditRepository;
 import br.edu.ifrs.account.repository.AccountRepository;
@@ -22,6 +24,8 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,6 +51,11 @@ class AccountCustomerResourceTest {
     private static final String DEPOSIT_ACTION = "DEPOSIT";
     private static final String WITHDRAW_ACTION = "WITHDRAW";
     private static final String TRANSFER_ACTION = "TRANSFER";
+    private static final String CREATE_ACCOUNT_ACTION = "CREATE_ACCOUNT";
+    private static final String REGISTER_PATH = "/api/v1/auth/register";
+    private static final String ACCOUNTS_PATH = "/api/v1/accounts";
+    private static final String EXCLUSIVE_USERNAME = "component_account_user";
+    private static final String EXCLUSIVE_PASSWORD = "conta-segura-123";
     private static final String TRANSFER_PATH = "/api/v1/accounts/{accountId}/transfer";
     private static final List<String> TOUCHED_ACTIONS = List.of(DEPOSIT_ACTION, WITHDRAW_ACTION, TRANSFER_ACTION);
     private static final String INVALID_AMOUNT_MESSAGE = "O valor deve ser maior que zero.";
@@ -70,17 +79,35 @@ class AccountCustomerResourceTest {
     @Inject
     AccountAuditRepository auditRepository;
 
+    @Inject
+    UserRepository userRepository;
+
     private long accountCountBeforeTest;
+    private Set<Long> createAuditIdsBeforeTest;
 
     @BeforeEach
     void prepareData() {
         restoreData();
         accountCountBeforeTest = QuarkusTransaction.requiringNew().call(() -> accountRepository.count());
+        createAuditIdsBeforeTest = QuarkusTransaction.requiringNew().call(() ->
+                auditRepository.list("action", CREATE_ACCOUNT_ACTION).stream()
+                        .map(AccountAudit::getId)
+                        .collect(Collectors.toSet()));
     }
 
     @AfterEach
     void restoreData() {
         QuarkusTransaction.requiringNew().run(() -> {
+            if (createAuditIdsBeforeTest != null) {
+                // remove somente as auditorias de criação geradas pelo teste corrente
+                auditRepository.list("action", CREATE_ACCOUNT_ACTION).stream()
+                        .filter(audit -> !createAuditIdsBeforeTest.contains(audit.getId()))
+                        .forEach(auditRepository::delete);
+            }
+            // a conta deve ser removida antes do usuário dono dela
+            accountRepository.delete(
+                    "ownerId in (select u.id from User u where u.username = ?1)", EXCLUSIVE_USERNAME);
+            userRepository.delete("username", EXCLUSIVE_USERNAME);
             auditRepository.delete("action in ?1 and targetAccountId in ?2", TOUCHED_ACTIONS, TOUCHED_ACCOUNTS);
             restoreBalance(CUSTOMER_ACCOUNT, CUSTOMER_ACCOUNT_BALANCE);
             restoreBalance(ACTIVE_THIRD_PARTY_ACCOUNT, THIRD_PARTY_ACCOUNT_BALANCE);
@@ -424,7 +451,146 @@ class AccountCustomerResourceTest {
                 2L, "Conta bloqueada: ACC1005");
     }
 
+    // ---------- criação de conta e consulta sem conta ----------
+
+    @Test
+    void createShouldPersistABlockedZeroBalanceAccountForTheNewCustomerAndAuditTheSuccess() {
+        long ownerId = registerExclusiveUser();
+        String token = token(EXCLUSIVE_USERNAME, EXCLUSIVE_PASSWORD);
+        String expectedAccountId = "CC_" + ownerId;
+
+        // o resource declara @Consumes(JSON); sem Content-Type o POST sem corpo falha com 500 (ver relatório)
+        given()
+                .auth().oauth2(token)
+                .contentType(ContentType.JSON)
+                .when().post(ACCOUNTS_PATH)
+                .then()
+                .statusCode(201)
+                .contentType(ContentType.JSON)
+                .body("message", equalTo("Conta criada com sucesso!"));
+
+        List<Account> accounts = accountsOwnedBy(ownerId);
+        assertEquals(1, accounts.size());
+        Account account = accounts.get(0);
+        assertEquals(expectedAccountId, account.getAccountId());
+        assertMoney(new BigDecimal("0"), account.getBalance());
+        assertEquals(AccountStatusEnum.BLOCKED, account.getStatus());
+        assertEquals(accountCountBeforeTest + 1, accountCount());
+        assertOriginalBalances();
+
+        List<AccountAudit> audits = newCreateAccountAudits();
+        assertEquals(1, audits.size());
+        AccountAudit audit = audits.get(0);
+        assertEquals("SUCCESS", audit.getResult());
+        assertEquals(ownerId, audit.getOwnerId());
+        assertNull(audit.getSourceAccountId());
+        assertEquals(expectedAccountId, audit.getTargetAccountId());
+        assertNull(audit.getAmount());
+        assertNull(audit.getErrorMessage());
+        assertNotNull(audit.getOperationId());
+        assertNotNull(audit.getTimestamp());
+
+        long auditCountAfterCreate = auditCount();
+        Response response = given()
+                .auth().oauth2(token)
+                .when().get(OWNER_PATH)
+                .then()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("id", equalTo(account.getId().intValue()))
+                .body("accountId", equalTo(expectedAccountId))
+                .body("ownerId", equalTo((int) ownerId))
+                .body("status", equalTo("BLOCKED"))
+                .extract().response();
+
+        assertMoney(account.getBalance(), bigDecimalFrom(response, "balance"));
+        assertEquals(accountCountBeforeTest + 1, accountCount());
+        assertEquals(auditCountAfterCreate, auditCount());
+    }
+
+    @Test
+    void createShouldReturn400WhenTheCustomerAlreadyHasAnAccount() {
+        given()
+                .auth().oauth2(customerToken())
+                .contentType(ContentType.JSON)
+                .when().post(ACCOUNTS_PATH)
+                .then()
+                .statusCode(400)
+                .contentType(ContentType.JSON)
+                .body("error", equalTo("Usuário id 2 já possui uma conta."));
+
+        assertEquals(accountCountBeforeTest, accountCount());
+        List<Account> accounts = accountsOwnedBy(2L);
+        assertEquals(1, accounts.size());
+        assertEquals(CUSTOMER_ACCOUNT, accounts.get(0).getAccountId());
+        assertEquals(AccountStatusEnum.ACTIVE, accounts.get(0).getStatus());
+        assertOriginalBalances();
+
+        List<AccountAudit> audits = newCreateAccountAudits();
+        assertEquals(1, audits.size());
+        AccountAudit audit = audits.get(0);
+        assertEquals("FAILURE", audit.getResult());
+        // comportamento atual: a auditoria de falha de criação não registra ownerId nem contas
+        assertNull(audit.getOwnerId());
+        assertNull(audit.getSourceAccountId());
+        assertNull(audit.getTargetAccountId());
+        assertNull(audit.getAmount());
+        assertEquals("Usuário id 2 já possui uma conta.", audit.getErrorMessage());
+        assertNotNull(audit.getOperationId());
+        assertNotNull(audit.getTimestamp());
+    }
+
+    @Test
+    void getByOwnerShouldReturn404WhenTheCustomerHasNoAccount() {
+        long ownerId = registerExclusiveUser();
+        String token = token(EXCLUSIVE_USERNAME, EXCLUSIVE_PASSWORD);
+        long auditCountBefore = auditCount();
+
+        given()
+                .auth().oauth2(token)
+                .when().get(OWNER_PATH)
+                .then()
+                .statusCode(404)
+                .contentType(ContentType.JSON)
+                .body("error", equalTo("Nenhuma conta encontrada para o usuário " + ownerId));
+
+        assertEquals(0, accountsOwnedBy(ownerId).size());
+        assertEquals(accountCountBeforeTest, accountCount());
+        assertOriginalBalances();
+        assertEquals(auditCountBefore, auditCount());
+        assertEquals(0, newCreateAccountAudits().size());
+    }
+
     // ---------- helpers ----------
+
+    private static long registerExclusiveUser() {
+        return given()
+                .contentType(ContentType.JSON)
+                .body(Map.of("username", EXCLUSIVE_USERNAME, "password", EXCLUSIVE_PASSWORD))
+                .when().post(REGISTER_PATH)
+                .then()
+                .statusCode(201)
+                .extract().jsonPath().getLong("id");
+    }
+
+    private long accountCount() {
+        return QuarkusTransaction.requiringNew().call(() -> accountRepository.count());
+    }
+
+    private long auditCount() {
+        return QuarkusTransaction.requiringNew().call(() -> auditRepository.count());
+    }
+
+    private List<Account> accountsOwnedBy(long ownerId) {
+        return QuarkusTransaction.requiringNew().call(() -> accountRepository.list("ownerId", ownerId));
+    }
+
+    private List<AccountAudit> newCreateAccountAudits() {
+        return QuarkusTransaction.requiringNew().call(() ->
+                auditRepository.list("action", CREATE_ACCOUNT_ACTION).stream()
+                        .filter(audit -> !createAuditIdsBeforeTest.contains(audit.getId()))
+                        .toList());
+    }
 
     private static Map<String, Object> transferBody(String targetAccountId, String amount) {
         return Map.of("targetAccountId", targetAccountId, "amount", new BigDecimal(amount));

@@ -16,7 +16,7 @@ O relatório navegável foi gerado pela extensão `quarkus-jacoco` em `target/ja
 
 | Métrica | Coberto | Total | Percentual |
 | --- | ---: | ---: | ---: |
-| Linhas | 320 | 356 | **89,9%** |
+| Linhas | 332 | 356 | **93,3%** |
 | Desvios | 42 | 44 | **95,5%** |
 
 Evolução observada:
@@ -29,6 +29,7 @@ Evolução observada:
 | Unitários + três lotes de componente | 294/356 | 82,6% |
 | Unitários + componente de depósito e saque | 305/356 | 85,7% |
 | Unitários + componente de transferência | 320/356 | 89,9% |
+| Unitários + componente de criação e consulta sem conta | 332/356 | 93,3% |
 
 ## 3. Classes centrais
 
@@ -45,7 +46,7 @@ Evolução observada:
 | `AccountStatusEnum` | 11/11 | 100% | 6/6 |
 | `AccountAdminResource` | 2/18 | 11,1% | não aplicável |
 | `AccountAuditResource` | 2/5 | 40,0% | não aplicável |
-| `AccountCustomerResource` | 38/50 | 76,0% | não aplicável |
+| `AccountCustomerResource` | 50/50 | 100% | não aplicável |
 
 ## 4. Limites configurados
 
@@ -66,7 +67,6 @@ O JaCoCo informou `All coverage checks have been met`, e o Maven terminou com `B
 
 Os endpoints GET representativos dos recursos protegidos possuem cobertura parcial por causa do `AuthorizationTest`. A consulta da conta do cliente e os principais resultados de depósito, saque e transferência também são exercitados pelo `AccountCustomerResourceTest`, mas os demais fluxos REST e repositórios continuam pendentes. Entre as lacunas estão:
 
-- criação de conta em `AccountCustomerResource`;
 - consulta individual e alteração de status em `AccountAdminResource`;
 - filtros e consulta de registros em `AccountAuditResource`;
 - `AccountRepository`;
