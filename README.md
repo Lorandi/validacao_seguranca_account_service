@@ -6,6 +6,10 @@ O `account-service` é uma API REST para gerenciamento de contas bancárias. A a
 
 O acesso aos endpoints protegidos utiliza tokens JWT e os perfis `CUSTOMER`, `ADMIN` e `AUDITOR`.
 
+## Documentação do projeto
+
+- [Plano de teste](docs/plano-de-teste.md)
+
 ## Tecnologias
 
 - Java 25
