@@ -31,7 +31,7 @@ O acesso aos endpoints protegidos utiliza tokens JWT e os perfis `CUSTOMER`, `AD
 No terminal, dentro da pasta do projeto, execute:
 
 ```powershell
-mvn quarkus:dev
+.\mvnw.cmd quarkus:dev
 ```
 
 A aplicação será iniciada em:
@@ -46,41 +46,22 @@ O Swagger UI estará disponível em:
 http://localhost:8080/swagger/
 ```
 
-Para compilar e validar o projeto:
-
-```powershell
-mvn test
-mvn package
-```
-
 ## Verificação e qualidade
 
-Comandos para o Windows (PowerShell), executados na pasta do projeto com o Maven Wrapper:
+Requer JDK 25. Comandos para o Windows (PowerShell), na pasta do projeto:
 
 | Comando | O que faz |
 | --- | --- |
-| `.\mvnw.cmd pmd:pmd` | Executa a análise estática do PMD e gera o relatório, sem falhar o build |
-| `.\mvnw.cmd pmd:check` | Falha o build se o PMD encontrar alguma violação |
 | `.\mvnw.cmd test` | Executa os testes unitários e de componente |
-| `.\mvnw.cmd verify` | Empacota a aplicação e executa testes, PMD, relatório do JaCoCo e testes de sistema pelo Failsafe |
+| `.\mvnw.cmd package` | Compila e empacota a aplicação |
+| `.\mvnw.cmd pmd:pmd` | Gera o relatório do PMD, sem falhar o build |
+| `.\mvnw.cmd clean verify` | Build completo: testes, PMD, testes de sistema (Failsafe) e limites de cobertura do JaCoCo |
 
-Relatórios gerados (em `target/`, pasta não versionada):
+Relatórios gerados em `target/` (não versionada): PMD em `target/reports/pmd.html`, JaCoCo em `target/jacoco-report/index.html` e Failsafe em `target/failsafe-reports/`.
 
-- PMD: `target/pmd.xml` e `target/reports/pmd.html`;
-- JaCoCo: `target/jacoco-report/index.html`, gerado pela extensão `quarkus-jacoco` quando há testes `@QuarkusTest`. Os dados brutos ficam em `target/jacoco-quarkus.exec`, que recebe tanto a cobertura dos testes `@QuarkusTest` quanto a dos testes JUnit/Mockito que não sobem o Quarkus (agente do `jacoco-maven-plugin`), seguindo o arranjo apresentado na página de JaCoCo do material da disciplina.
-- Failsafe: `target/failsafe-reports/`, com os resultados dos testes `@QuarkusIntegrationTest` executados contra o artefato empacotado.
+Os limites de cobertura (70% de linhas no total e 80% nos serviços e em `AuthService`) são verificados no `verify`.
 
-Os limites de cobertura (70% de linhas no total e 80% nos serviços e em `AuthService`) estão configurados no `pom.xml`. A propriedade `coverage.check.skip` permanece `true` por padrão. Para validar os limites, execute:
-
-```powershell
-.\mvnw.cmd clean verify "-DskipITs=false" "-Dcoverage.check.skip=false"
-```
-
-Na execução validada em 20/11/2026 com JDK 25, passaram 160 testes unitários e de componente pelo Surefire e seis testes de sistema pelo Failsafe, totalizando 166 execuções, sem falhas, erros ou testes ignorados. O PMD apresentou zero violações e os limites JaCoCo foram atendidos. A cobertura permaneceu em 354/359 linhas (98,6%) e 45/47 desvios (95,7%). Os testes de sistema obrigatórios foram concluídos e cobrem login, consulta, depósito, saque, transferência, auditoria, bloqueio e desbloqueio administrativo, operação recusada em conta bloqueada, login inválido e restrição de acesso por perfil.
-
-Os testes unitários e de componente usam um par de chaves JWT próprio em `src/test/resources`. O teste de sistema executa o artefato empacotado no perfil de produção e valida, por HTTP, as chaves incluídas em `src/main/resources`.
-
-Detalhes da análise estática: [docs/analise-estatica.md](docs/analise-estatica.md). Estratégia completa de testes: [docs/plano-de-teste.md](docs/plano-de-teste.md).
+Os resultados e as evidências estão nos documentos listados em [Documentação do projeto](#documentação-do-projeto).
 
 ## Autenticação
 
@@ -189,23 +170,19 @@ Exigem o perfil `AUDITOR`.
 
 ## Tratamento de erros
 
-A API utiliza códigos HTTP para representar falhas de autenticação, autorização, validação e regras de negócio.
+A API usa códigos HTTP para falhas de autenticação, autorização, validação e regras de negócio. Os erros tratados retornam JSON com `errorId`, `status` e `error`; os detalhes de falhas inesperadas ficam apenas no log, localizáveis pelo `errorId`.
 
-| Código HTTP | Exceção ou origem | Situações |
+| Código HTTP | Origem | Situações |
 | --- | --- | --- |
-| `400 Bad Request` | `IllegalArgumentException` | Valor nulo ou negativo, contas de origem e destino iguais, usuário não proprietário da conta ou nome de usuário já cadastrado |
-| `400 Bad Request` | Bean Validation | Campos obrigatórios ausentes, nome de usuário menor que 3 caracteres ou senha menor que 8 caracteres |
-| `401 Unauthorized` | `InvalidCredentialsException` | Usuário inexistente ou senha incorreta |
-| `401 Unauthorized` | SmallRye JWT | Token ausente, inválido, expirado ou assinado com uma chave diferente |
-| `403 Forbidden` | Segurança do Quarkus | Usuário autenticado sem o perfil exigido pelo endpoint |
-| `404 Not Found` | Tratamento do recurso | Conta ou conta do proprietário não encontrada em endpoints de consulta e administração |
-| `409 Conflict` | `IllegalStateException` | Conta bloqueada, saldo insuficiente ou conflito com o estado atual da conta |
-| `415 Unsupported Media Type` | `NotSupportedException` | Tipo de conteúdo incompatível com o endpoint |
-| `500 Internal Server Error` | Exceção não tratada | Falha inesperada durante o processamento da requisição |
+| `400 Bad Request` | `IllegalArgumentException` e Bean Validation | Valor nulo, zero ou negativo; contas de origem e destino iguais; usuário não proprietário da conta; username já cadastrado; campos obrigatórios ausentes; username com menos de 3 ou senha com menos de 8 caracteres |
+| `401 Unauthorized` | `InvalidCredentialsException` e SmallRye JWT | Credenciais inválidas; token ausente, inválido, expirado ou de outro emissor (`users-issuer`) |
+| `403 Forbidden` | Segurança do Quarkus | Usuário autenticado sem o perfil exigido |
+| `404 Not Found` | Recurso | Conta não encontrada em consultas e administração |
+| `409 Conflict` | `IllegalStateException` | Conta bloqueada ou saldo insuficiente |
+| `415 Unsupported Media Type` | `NotSupportedException` | Tipo de conteúdo incompatível (os POSTs de criação de conta exigem `Content-Type: application/json`, mesmo sem corpo) |
+| `500 Internal Server Error` | Exceção não tratada | Falha inesperada |
 
-### Credenciais inválidas
-
-O login retorna `401 Unauthorized` quando o usuário não existe ou a senha está incorreta.
+Exemplo de resposta:
 
 ```json
 {
@@ -214,111 +191,6 @@ O login retorna `401 Unauthorized` quando o usuário não existe ou a senha est�
   "error": "Credenciais inválidas."
 }
 ```
-
-### Dados inválidos
-
-Operações com valor igual ou menor que zero retornam `400 Bad Request`.
-
-```json
-{
-  "error": "O valor deve ser maior que zero."
-}
-```
-
-Outras situações que retornam `400` incluem:
-
-- nome de usuário já cadastrado;
-- usuário tentando movimentar uma conta da qual não é proprietário;
-- conta de origem igual à conta de destino;
-- campos obrigatórios ausentes;
-- senha com menos de 8 caracteres.
-
-### Recurso não encontrado
-
-Consultas de contas inexistentes retornam `404 Not Found`.
-
-```json
-{
-  "error": "Conta não encontrada: ACC9999"
-}
-```
-
-### Conflito com a regra de negócio
-
-Operações incompatíveis com o estado atual da conta retornam `409 Conflict`.
-
-Exemplo de conta bloqueada:
-
-```json
-{
-  "error": "Conta bloqueada: ACC1005"
-}
-```
-
-Exemplo de saldo insuficiente:
-
-```json
-{
-  "error": "Saldo insuficiente."
-}
-```
-
-### Token ausente ou inválido
-
-Endpoints protegidos sem um JWT válido retornam:
-
-```text
-401 Unauthorized
-```
-
-O token pode ser recusado quando:
-
-- não foi enviado;
-- está expirado;
-- possui assinatura inválida;
-- utiliza um emissor diferente de `users-issuer`.
-
-### Perfil sem permissão
-
-Um JWT válido sem o perfil exigido retorna:
-
-```text
-403 Forbidden
-```
-
-Exemplos:
-
-- `CUSTOMER` tentando acessar endpoints administrativos;
-- `ADMIN` tentando acessar endpoints de auditoria;
-- `AUDITOR` tentando realizar operações bancárias.
-
-### Tipo de conteúdo não suportado
-
-Os POSTs válidos de criação de conta devem enviar `Content-Type: application/json`, mesmo sem corpo. Um tipo incompatível, como `text/plain`, retorna `415 Unsupported Media Type` com mensagem controlada:
-
-```json
-{
-  "errorId": "76d2044d-ecc3-41b8-9648-ea2fa90bed52",
-  "status": 415,
-  "error": "Tipo de conteúdo não suportado."
-}
-```
-
-Esse tratamento é específico para `NotSupportedException`. Outras exceções HTTP não mapeadas explicitamente ainda podem cair no retorno genérico 500; essa limitação permanece pendente.
-
-### Erro interno
-
-Falhas inesperadas retornam `500 Internal Server Error` com um identificador para rastreamento:
-
-```json
-{
-  "errorId": "76d2044d-ecc3-41b8-9648-ea2fa90bed52",
-  "status": 500,
-  "error": "Erro inesperado."
-}
-```
-
-Os detalhes da falha ficam registrados apenas no log da aplicação e podem ser localizados pelo `errorId` retornado na resposta.
 
 ## Persistência
 

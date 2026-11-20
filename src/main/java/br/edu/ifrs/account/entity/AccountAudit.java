@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "admin_audit")
@@ -51,16 +50,6 @@ public class AccountAudit {
         this.result = result;
         this.timestamp = timestamp;
         this.errorMessage = errorMessage;
-    }
-
-    @PrePersist
-    public void prePersist() {
-        if (operationId == null) {
-            operationId = UUID.randomUUID().toString();
-        }
-        if (timestamp == null) {
-            timestamp = LocalDateTime.now();
-        }
     }
 
     public Long getId() {

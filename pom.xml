@@ -7,7 +7,6 @@
 
     <properties>
         <compiler-plugin.version>3.14.1</compiler-plugin.version>
-        <coverage.check.skip>true</coverage.check.skip>
         <coverage.line.minimum>0.70</coverage.line.minimum>
         <coverage.service.line.minimum>0.80</coverage.service.line.minimum>
         <jacoco-plugin.version>0.8.14</jacoco-plugin.version>
@@ -148,12 +147,6 @@
                     <rulesets>
                         <ruleset>${project.basedir}/config/pmd/ruleset.xml</ruleset>
                     </rulesets>
-                    <format>xml</format>
-                    <includeTests>false</includeTests>
-                    <analysisCache>false</analysisCache>
-                    <failOnViolation>true</failOnViolation>
-                    <failurePriority>5</failurePriority>
-                    <printFailingErrors>true</printFailingErrors>
                 </configuration>
                 <executions>
                     <execution>
@@ -201,7 +194,6 @@
                         </goals>
                         <configuration>
                             <dataFile>${project.build.directory}/jacoco-quarkus.exec</dataFile>
-                            <skip>${coverage.check.skip}</skip>
                             <rules>
                                 <rule>
                                     <element>BUNDLE</element>
@@ -246,7 +238,6 @@
                 <configuration>
                     <argLine>@{argLine}</argLine>
                     <systemPropertyVariables>
-                        <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                         <maven.home>${maven.home}</maven.home>
                     </systemPropertyVariables>
@@ -254,19 +245,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>native</id>
-            <activation>
-                <property>
-                    <name>native</name>
-                </property>
-            </activation>
-            <properties>
-                <skipITs>false</skipITs>
-                <quarkus.native.enabled>true</quarkus.native.enabled>
-            </properties>
-        </profile>
-    </profiles>
 </project>
