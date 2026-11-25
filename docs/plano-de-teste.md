@@ -49,7 +49,7 @@ O H2 carrega os usuários e as contas de `src/main/resources/import.sql`. Os tes
 
 ## 4. Critérios de aprovação
 
-O build de verificação deve passar com todos os testes obrigatórios, zero violações do PMD e cobertura de linhas de pelo menos 70% no total e 80% nos serviços e em `AuthService`.
+O build de verificação deve passar com todos os testes obrigatórios, zero violações do PMD e os limites de cobertura indicados na seção de resultados.
 
 ## 5. Cronograma
 
@@ -136,13 +136,18 @@ O build completo de **25/11/2026** terminou com `BUILD SUCCESS`, sem falhas, err
 | Failsafe | Testes de sistema | 6 |
 | **Total** | | **172** |
 
-| Métrica | Resultado |
-| --- | --- |
-| Violações do PMD | 0 |
-| Cobertura de linhas | **99,7%** (351/352) |
-| Cobertura de desvios | **100%** (43/43) |
-| Limites do JaCoCo | Atendidos |
+| Métrica | Cobertura mínima | Resultado |
+| --- | --- | --- |
+| Violações do PMD | — | 0 |
+| Linhas no projeto | 70% | **99,7%** (351/352) |
+| Linhas por classe de serviço e em `AuthService` | 80% | **100%** |
+| Cobertura de desvios | — | **100%** (43/43) |
 
-A cobertura mede as execuções do Surefire. A linha restante é o construtor implícito de `OpenApiConfig`. Antes da remoção de código sem uso, a cobertura de linhas avançou de 73,0% com os testes unitários para 82,6% com os primeiros testes de componente, 93,3% com os cenários de cliente e HTTP `415`, 97,8% com administração e 98,6% com auditoria.
+Os limites estão definidos no [`pom.xml`](../pom.xml).
+
+```xml
+<coverage.line.minimum>0.70</coverage.line.minimum>
+<coverage.service.line.minimum>0.80</coverage.service.line.minimum>
+```
 
 Os relatórios são gerados em `target/`. O Surefire e o Failsafe geram seus arquivos em `target/surefire-reports/` e `target/failsafe-reports/`. O PMD gera `target/pmd.xml` e `target/reports/pmd.html`. O JaCoCo gera `target/jacoco-report/index.html` e `target/jacoco-report/jacoco.csv`.
